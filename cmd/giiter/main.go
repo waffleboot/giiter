@@ -22,7 +22,7 @@ func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	cmd := exec.CommandContext(ctx, "git", "log", `--pretty=format:%H`)
+	cmd := exec.CommandContext(ctx, "git", "log", `--pretty=format:%h`)
 
 	stdout, err := cmd.Output()
 	if err != nil {
