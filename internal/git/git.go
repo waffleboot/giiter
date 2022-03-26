@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"os/exec"
 )
@@ -59,12 +60,32 @@ func (g *git) run(ctx context.Context, args ...string) ([]string, error) {
 	return out, nil
 }
 
-func (g *git) Branches(ctx context.Context) ([]string, error) {
-	return g.run(ctx, "branch", "--format=%(refname:short)")
+type Branch struct {
+	Name   string
+	Commit string
+}
+
+func (g *git) Branches(ctx context.Context) ([]Branch, error) {
+	out, err := g.run(ctx, "branch", "--format=%(objectname:short) %(refname:short)")
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]Branch, 0, len(out))
+
+	for _, line := range out {
+		obj := Branch{
+			Commit: line[:7],
+			Name:   line[8:],
+		}
+		result = append(result, obj)
+	}
+
+	return result, nil
 }
 
 func (g *git) DeleteBranch(ctx context.Context, name string) error {
-	_, err := g.run(ctx, "branch", "-d", name)
+	_, err := g.run(ctx, "branch", "-D", name)
 	return err
 }
 
@@ -74,5 +95,45 @@ func (g *git) CreateBranch(ctx context.Context, name, base string) error {
 }
 
 func (g *git) Commits(ctx context.Context, base, feat string) ([]string, error) {
-	return g.run(ctx, "log", `--pretty=format:%h`, fmt.Sprintf("%s..%s", base, feat))
+	commits, err := g.run(ctx, "log", `--pretty=format:%h`, fmt.Sprintf("%s..%s", base, feat))
+	if err != nil {
+		return nil, err
+	}
+	for i := 0; i < len(commits)/2; i++ {
+		r := len(commits) - i - 1
+		commits[i], commits[r] = commits[r], commits[i]
+	}
+	return commits, err
+}
+
+func (g *git) DiffHash(ctx context.Context, commit string) ([]byte, error) {
+	hash := sha256.New()
+
+	diff, err := g.run(ctx, "diff", "--unified=0", commit+"~", commit)
+	if err != nil {
+		return nil, err
+	}
+	diff = diff[2:]
+
+	for _, line := range diff {
+		hash.Write([]byte(line))
+	}
+
+	sum := hash.Sum(nil)
+
+	if g.verbose {
+		fmt.Println("--- diff ---")
+		for _, d := range diff {
+			fmt.Println(d)
+		}
+		fmt.Printf("%x\n", sum)
+		fmt.Println("--- diff ---")
+	}
+
+	return sum, nil
+}
+
+func (g *git) SwitchBranch(ctx context.Context, branch, commit string) error {
+	_, err := g.run(ctx, "branch", "-f", branch, commit)
+	return err
 }
