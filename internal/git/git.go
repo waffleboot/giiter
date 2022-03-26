@@ -72,9 +72,9 @@ func (g *git) CreateBranch(name, base string) error {
 }
 
 func (g *git) Commits(base, feat string) ([]string, error) {
-	r := fmt.Sprintf("%s..%s", base, feat)
+	fromTo := fmt.Sprintf("%s..%s", base, feat)
 
-	commits, err := g.run("log", `--pretty=format:%h`, r)
+	commits, err := g.run("log", `--pretty=format:%h`, fromTo)
 	if err != nil {
 		return nil, err
 	}
@@ -101,14 +101,14 @@ func (g *git) SwitchBranch(branch, commit string) error {
 }
 
 func (g *git) FindCommit(sha string) (*Commit, error) {
-	out, err := g.run("log", "--pretty=format:%s", sha, "-1")
+	output, err := g.run("log", "--pretty=format:%s", sha, "-1")
 	if err != nil {
 		return nil, err
 	}
 
 	commit := &Commit{
 		SHA:     sha,
-		Subject: out[0],
+		Subject: output[0],
 	}
 
 	return commit, nil

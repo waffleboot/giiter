@@ -5,8 +5,8 @@ import (
 	"fmt"
 )
 
-func (g *git) DiffHash(commit string) (string, error) {
-	diff, err := g.run("diff", "--unified=0", commit+"~", commit)
+func (g *git) DiffHash(sha string) (string, error) {
+	diff, err := g.run("diff", "--unified=0", sha+"~", sha)
 	if err != nil {
 		return "", err
 	}
@@ -23,11 +23,11 @@ func (g *git) DiffHash(commit string) (string, error) {
 	strSum := fmt.Sprintf("%x", sum)
 
 	if g.debug {
-		fmt.Printf("--- diff %s\n", commit)
+		fmt.Printf("--- diff %s\n", sha)
 		for _, line := range diff {
 			fmt.Println(line)
 		}
-		fmt.Printf("Commit: %s DiffHash: %s\n", commit, strSum)
+		fmt.Printf("Commit: %s DiffHash: %s\n", sha, strSum)
 	}
 
 	return strSum, nil

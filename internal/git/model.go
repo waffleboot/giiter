@@ -9,3 +9,13 @@ type Branch struct {
 	SHA  string
 	Name string
 }
+
+type Record struct {
+	FeatureSHA   string
+	FeatureSubj  string
+	ReviewSHA    string
+	ReviewSubj   string
+	ReviewBranch string
+	// DiffHash     string
+	MergeRequest int
+}
