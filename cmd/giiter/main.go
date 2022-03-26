@@ -109,6 +109,15 @@ func run() error {
 							FlagFeat,
 						},
 					},
+					{
+						Name:    "assign",
+						Usage:   "",
+						Aliases: []string{"a"},
+						Flags: []cli.Flag{
+							FlagBase,
+							FlagFeat,
+						},
+					},
 				},
 				Flags: []cli.Flag{
 					FlagRepo,
@@ -144,21 +153,48 @@ func gitListFeatureCommits(ctx *cli.Context) error {
 }
 
 func gitMakeReviewBranches(ctx *cli.Context) error {
-	g := git.NewGit(ctx)
-
-	base := ctx.String("base")
-	feat := ctx.String("feature")
-
-	commits, err := g.Commits(base, feat)
+	_, fixCommits, err := check(ctx)
 	if err != nil {
 		return err
 	}
 
+	if len(fixCommits) == 0 {
+		return nil
+	}
+
+	g := git.NewGit(ctx)
+
+	branches, err := g.Branches()
+	if err != nil {
+		return err
+	}
+
+	feat := ctx.String("feature")
+
 	prefix := reviewBranchPrefix(feat)
 
-	for i := range commits {
-		branch := prefix + strconv.Itoa(i+1)
-		if err := g.CreateBranch(branch, commits[i]); err != nil {
+	featureBranches := make(map[string]struct{})
+
+	for _, branch := range branches {
+		name := branch.Name
+		if !strings.HasPrefix(name, prefix) {
+			continue
+		}
+		featureBranches[branch.Name] = struct{}{}
+	}
+
+	var n int
+
+	for i := range fixCommits {
+		var branch string
+		for {
+			n++
+			branch = prefix + strconv.Itoa(n)
+			if _, exists := featureBranches[branch]; !exists {
+				break
+			}
+		}
+		if err := g.CreateBranch(branch, fixCommits[i]); err != nil {
 			return err
 		}
 	}
@@ -206,7 +242,7 @@ func gitShowAllBranches(ctx *cli.Context) error {
 	return nil
 }
 
-func gitCheckFeatureStack(ctx *cli.Context) error {
+func check(ctx *cli.Context) ([]git.Branch, []string, error) {
 	g := git.NewGit(ctx)
 
 	base := ctx.String("base")
@@ -214,21 +250,21 @@ func gitCheckFeatureStack(ctx *cli.Context) error {
 
 	commits, err := g.Commits(base, feat)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	hashToCommit := make(map[string]string)
 	for _, commit := range commits {
 		hash, err := g.DiffHash(commit)
 		if err != nil {
-			return err
+			return nil, nil, err
 		}
 		hashToCommit[hash] = commit
 	}
 
 	branches, err := g.Branches()
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	prefix := reviewBranchPrefix(feat)
@@ -240,7 +276,7 @@ func gitCheckFeatureStack(ctx *cli.Context) error {
 
 			hash, err := g.DiffHash(branch.SHA)
 			if err != nil {
-				return err
+				return nil, nil, err
 			}
 
 			hashToBranch[hash] = branch.Name
@@ -258,12 +294,15 @@ func gitCheckFeatureStack(ctx *cli.Context) error {
 	// 	fmt.Println(k, v)
 	// }
 
-	var fixBranches []string
+	var fixBranches []git.Branch
 	for hash, branch := range hashToBranch {
 		if commit, ok := hashToCommit[hash]; ok {
 			g.SwitchBranch(branch, commit)
 		} else {
-			fixBranches = append(fixBranches, branch)
+			fixBranches = append(fixBranches, git.Branch{
+				Name: branch,
+				SHA:  branchToSHA[branch],
+			})
 		}
 	}
 
@@ -274,14 +313,25 @@ func gitCheckFeatureStack(ctx *cli.Context) error {
 		}
 	}
 
+	return fixBranches, fixCommits, nil
+}
+
+func gitCheckFeatureStack(ctx *cli.Context) error {
+	fixBranches, fixCommits, err := check(ctx)
+	if err != nil {
+		return err
+	}
+
+	g := git.NewGit(ctx)
+
 	if len(fixBranches) > 0 {
 		fmt.Println("FIX BRANCHES")
 		for _, branch := range fixBranches {
-			commit, err := g.FindCommit(branchToSHA[branch])
+			commit, err := g.FindCommit(branch.Name)
 			if err != nil {
 				return err
 			}
-			fmt.Printf("git branch -f %s Subj:%s\n", branch, commit.Subject)
+			fmt.Printf("git branch -f %s Subj:%s\n", branch.Name, commit.Subject)
 		}
 	}
 
