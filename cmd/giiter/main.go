@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -33,6 +32,16 @@ var (
 		Usage:    "feature branch",
 		Required: true,
 	}
+	FlagVerbose = &cli.BoolFlag{
+		Name:    "verbose",
+		Aliases: []string{"v"},
+		Usage:   "verbose",
+	}
+	FlagDebug = &cli.BoolFlag{
+		Name:    "debug",
+		Aliases: []string{"d"},
+		Usage:   "debug",
+	}
 )
 
 func main() {
@@ -47,6 +56,10 @@ func run() error {
 
 	app := &cli.App{
 		Name: "giiter",
+		Flags: []cli.Flag{
+			FlagVerbose,
+			FlagDebug,
+		},
 		Commands: []*cli.Command{
 			{
 				Name:    "git",
@@ -54,8 +67,9 @@ func run() error {
 				Subcommands: []*cli.Command{
 					{
 						Name:    "list",
+						Usage:   "list feature commits",
 						Aliases: []string{"l"},
-						Action:  gitList,
+						Action:  gitListFeatureCommits,
 						Flags: []cli.Flag{
 							FlagBase,
 							FlagFeat,
@@ -63,8 +77,9 @@ func run() error {
 					},
 					{
 						Name:    "make",
+						Usage:   "make review branches",
 						Aliases: []string{"m"},
-						Action:  gitMake,
+						Action:  gitMakeReviewBranches,
 						Flags: []cli.Flag{
 							FlagBase,
 							FlagFeat,
@@ -72,20 +87,23 @@ func run() error {
 					},
 					{
 						Name:    "clear",
+						Usage:   "delete review branches",
 						Aliases: []string{"c"},
-						Action:  gitClear,
+						Action:  gitDeleteReviewBranches,
 						Flags: []cli.Flag{
 							FlagFeat,
 						},
 					},
 					{
 						Name:    "branches",
+						Usage:   "show all branches",
 						Aliases: []string{"b"},
-						Action:  gitBranches,
+						Action:  gitShowAllBranches,
 					},
 					{
 						Name:   "check",
-						Action: gitCheck,
+						Usage:  "check and update feature branches",
+						Action: gitCheckFeatureStack,
 						Flags: []cli.Flag{
 							FlagBase,
 							FlagFeat,
@@ -102,36 +120,36 @@ func run() error {
 	return app.RunContext(ctx, os.Args)
 }
 
-func gitList(ctx *cli.Context) error {
-	g := git.NewGit(ctx.String("repo"), git.Verbose())
-	commits, err := g.Commits(ctx.Context, ctx.String("base"), ctx.String("feature"))
-	if err != nil {
-		return err
-	}
-	for i := range commits {
-		fmt.Println(commits[i])
-	}
-	return nil
-}
-
-// type maker struct {
-// 	repo string
-// 	base string
-// 	feat string
-// 	sha  string
-// }
-
-// func (m *maker) make(ctx *cli.Context) error {
-// 	return nil
-// }
-
-func gitMake(ctx *cli.Context) error {
-	g := git.NewGit(ctx.String("repo"), git.Verbose())
+func gitListFeatureCommits(ctx *cli.Context) error {
+	g := git.NewGit(ctx)
 
 	base := ctx.String("base")
 	feat := ctx.String("feature")
 
-	commits, err := g.Commits(ctx.Context, base, feat)
+	commits, err := g.Commits(base, feat)
+	if err != nil {
+		return err
+	}
+
+	for i := range commits {
+		commit, err := g.FindCommit(commits[i])
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("%s %s\n", commit.SHA, commit.Subject)
+	}
+
+	return nil
+}
+
+func gitMakeReviewBranches(ctx *cli.Context) error {
+	g := git.NewGit(ctx)
+
+	base := ctx.String("base")
+	feat := ctx.String("feature")
+
+	commits, err := g.Commits(base, feat)
 	if err != nil {
 		return err
 	}
@@ -140,35 +158,20 @@ func gitMake(ctx *cli.Context) error {
 
 	for i := range commits {
 		branch := prefix + strconv.Itoa(i+1)
-		if err := g.CreateBranch(ctx.Context, branch, commits[i]); err != nil {
+		if err := g.CreateBranch(branch, commits[i]); err != nil {
 			return err
 		}
-		// if _, err := g.run(ctx.Context, "branch", branch, sha); err != nil {
-		// 	return err
-		// }
-		// if _, err := g.run(ctx.Context, "reset", "--hard", branch, sha+"~1", sha); err != nil {
-		// 	return err
-		// }
-		// if _, err := g.run(ctx.Context, "rebase", "--onto", base, sha, branch); err != nil {
-		// 	return err
-		// }
 	}
-
-	// 		// git branch feat-sha base
-	// 		// git cherry pick sha
 
 	return nil
 }
 
-func gitClear(ctx *cli.Context) error {
-	g := git.NewGit(ctx.String("repo"), git.Verbose())
+func gitDeleteReviewBranches(ctx *cli.Context) error {
+	g := git.NewGit(ctx)
 
 	feat := ctx.String("feature")
-	if feat == "" {
-		return errors.New("feature is required")
-	}
 
-	branches, err := g.Branches(ctx.Context)
+	branches, err := g.Branches()
 	if err != nil {
 		return err
 	}
@@ -177,88 +180,88 @@ func gitClear(ctx *cli.Context) error {
 
 	for _, branch := range branches {
 		name := branch.Name
-		if strings.HasPrefix(name, prefix) {
-			if err := g.DeleteBranch(ctx.Context, name); err != nil {
-				return err
-			}
+		if !strings.HasPrefix(name, prefix) {
+			continue
+		}
+		if err := g.DeleteBranch(name); err != nil {
+			return err
 		}
 	}
 
 	return nil
 }
 
-func gitBranches(ctx *cli.Context) error {
-	g := git.NewGit(ctx.String("repo"), git.Verbose())
+func gitShowAllBranches(ctx *cli.Context) error {
+	g := git.NewGit(ctx)
 
-	out, err := g.Branches(ctx.Context)
+	branches, err := g.Branches()
 	if err != nil {
 		return err
 	}
 
-	for i := range out {
-		fmt.Println(out[i])
+	for i := range branches {
+		fmt.Printf("%s\n", branches[i].Name)
 	}
 
 	return nil
 }
 
-func gitCheck(ctx *cli.Context) error {
-	g := git.NewGit(ctx.String("repo"), git.Verbose())
+func gitCheckFeatureStack(ctx *cli.Context) error {
+	g := git.NewGit(ctx)
 
 	base := ctx.String("base")
 	feat := ctx.String("feature")
 
-	hashToCommit := make(map[string]string)
-
-	commits, err := g.Commits(ctx.Context, base, feat)
+	commits, err := g.Commits(base, feat)
 	if err != nil {
 		return err
 	}
 
+	hashToCommit := make(map[string]string)
 	for _, commit := range commits {
-		hash, err := g.DiffHash(ctx.Context, commit)
+		hash, err := g.DiffHash(commit)
 		if err != nil {
 			return err
 		}
-		hashToCommit[fmt.Sprintf("%x", hash)] = commit
+		hashToCommit[hash] = commit
 	}
 
-	branches, err := g.Branches(ctx.Context)
+	branches, err := g.Branches()
 	if err != nil {
 		return err
 	}
 
 	prefix := reviewBranchPrefix(feat)
 
+	branchToSHA := make(map[string]string)
 	hashToBranch := make(map[string]string)
-
 	for _, branch := range branches {
 		if strings.HasPrefix(branch.Name, prefix) {
 
-			hash, err := g.DiffHash(ctx.Context, branch.Commit)
+			hash, err := g.DiffHash(branch.SHA)
 			if err != nil {
 				return err
 			}
 
-			hashToBranch[fmt.Sprintf("%x", hash)] = branch.Name
+			hashToBranch[hash] = branch.Name
+			branchToSHA[branch.Name] = branch.SHA
 		}
 	}
 
-	for k, v := range hashToCommit {
-		fmt.Println(k, v)
-	}
+	// for k, v := range hashToCommit {
+	// 	fmt.Println(k, v)
+	// }
 
-	fmt.Println("----")
+	// fmt.Println("----")
 
-	for k, v := range hashToBranch {
-		fmt.Println(k, v)
-	}
+	// for k, v := range hashToBranch {
+	// 	fmt.Println(k, v)
+	// }
 
 	var fixBranches []string
-
 	for hash, branch := range hashToBranch {
 		if commit, ok := hashToCommit[hash]; ok {
-			g.SwitchBranch(ctx.Context, branch, commit)
+			g.SwitchBranch(branch, commit)
 		} else {
 			fixBranches = append(fixBranches, branch)
 		}
@@ -274,14 +277,22 @@ func gitCheck(ctx *cli.Context) error {
 	if len(fixBranches) > 0 {
 		fmt.Println("FIX BRANCHES")
 		for _, branch := range fixBranches {
-			fmt.Printf("git branch -f %s \n", branch)
+			commit, err := g.FindCommit(branchToSHA[branch])
+			if err != nil {
+				return err
+			}
+			fmt.Printf("git branch -f %s Subj:%s\n", branch, commit.Subject)
 		}
 	}
 
 	if len(fixCommits) > 0 {
 		fmt.Println("FIX COMMITS")
-		for _, commit := range fixCommits {
-			fmt.Println(commit)
+		for _, sha := range fixCommits {
+			commit, err := g.FindCommit(sha)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("%s %s\n", commit.SHA, commit.Subject)
 		}
 	}
 

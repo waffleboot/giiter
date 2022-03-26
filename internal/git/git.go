@@ -4,33 +4,96 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"crypto/sha256"
 	"fmt"
 	"os/exec"
+
+	"github.com/urfave/cli/v2"
 )
 
 type git struct {
 	repo    string
+	debug   bool
 	verbose bool
+	context context.Context
 }
 
 type Opts func(*git)
 
-func Verbose() Opts {
-	return func(g *git) {
-		g.verbose = true
-	}
-}
-
-func NewGit(repo string, opts ...Opts) *git {
-	g := &git{repo: repo}
-	for _, opt := range opts {
-		opt(g)
+func NewGit(ctx *cli.Context) *git {
+	g := &git{
+		repo:    ctx.String("repo"),
+		debug:   ctx.Bool("debug"),
+		verbose: ctx.Bool("verbose"),
+		context: ctx.Context,
 	}
 	return g
 }
 
-func (g *git) run(ctx context.Context, args ...string) ([]string, error) {
+func (g *git) Branches() ([]Branch, error) {
+	output, err := g.run("branch", "--format=%(objectname:short) %(refname:short)")
+	if err != nil {
+		return nil, err
+	}
+
+	branches := make([]Branch, 0, len(output))
+	for _, line := range output {
+		branch := Branch{
+			SHA:  line[:7],
+			Name: line[8:],
+		}
+		branches = append(branches, branch)
+	}
+
+	return branches, nil
+}
+
+func (g *git) DeleteBranch(name string) error {
+	_, err := g.run("branch", "-D", name)
+	return err
+}
+
+func (g *git) CreateBranch(name, base string) error {
+	_, err := g.run("branch", name, base)
+	return err
+}
+
+func (g *git) Commits(base, feat string) ([]string, error) {
+	r := fmt.Sprintf("%s..%s", base, feat)
+
+	commits, err := g.run("log", `--pretty=format:%h`, r)
+	if err != nil {
+		return nil, err
+	}
+
+	// reverse order
+	for i := 0; i < len(commits)/2; i++ {
+		r := len(commits) - i - 1
+		commits[i], commits[r] = commits[r], commits[i]
+	}
+
+	return commits, err
+}
+
+func (g *git) SwitchBranch(branch, commit string) error {
+	_, err := g.run("branch", "-f", branch, commit)
+	return err
+}
+
+func (g *git) FindCommit(sha string) (*Commit, error) {
+	out, err := g.run("log", "--pretty=format:%s", sha, "-1")
+	if err != nil {
+		return nil, err
+	}
+
+	commit := &Commit{
+		SHA:     sha,
+		Subject: out[0],
+	}
+
+	return commit, nil
+}
+
+func (g *git) run(args ...string) ([]string, error) {
 	if g.verbose {
 		fmt.Print("git")
 		for i := range args {
@@ -39,7 +102,8 @@ func (g *git) run(ctx context.Context, args ...string) ([]string, error) {
 		fmt.Println()
 	}
 
-	cmd := exec.CommandContext(ctx, "git", args...)
+	cmd := exec.CommandContext(g.context, "git", args...)
+
 	cmd.Dir = g.repo
 
 	stdout, err := cmd.Output()
@@ -47,93 +111,16 @@ func (g *git) run(ctx context.Context, args ...string) ([]string, error) {
 		return nil, err
 	}
 
-	s := bufio.NewScanner(bytes.NewReader(stdout))
+	var output []string
 
-	var out []string
-	for s.Scan() {
-		out = append(out, s.Text())
+	scanner := bufio.NewScanner(bytes.NewReader(stdout))
+
+	for scanner.Scan() {
+		output = append(output, scanner.Text())
 	}
-	if err := s.Err(); err != nil {
+	if err := scanner.Err(); err != nil {
 		return nil, err
 	}
 
-	return out, nil
-}
-
-type Branch struct {
-	Name   string
-	Commit string
-}
-
-func (g *git) Branches(ctx context.Context) ([]Branch, error) {
-	out, err := g.run(ctx, "branch", "--format=%(objectname:short) %(refname:short)")
-	if err != nil {
-		return nil, err
-	}
-
-	result := make([]Branch, 0, len(out))
-
-	for _, line := range out {
-		obj := Branch{
-			Commit: line[:7],
-			Name:   line[8:],
-		}
-		result = append(result, obj)
-	}
-
-	return result, nil
-}
-
-func (g *git) DeleteBranch(ctx context.Context, name string) error {
-	_, err := g.run(ctx, "branch", "-D", name)
-	return err
-}
-
-func (g *git) CreateBranch(ctx context.Context, name, base string) error {
-	_, err := g.run(ctx, "branch", name, base)
-	return err
-}
-
-func (g *git) Commits(ctx context.Context, base, feat string) ([]string, error) {
-	commits, err := g.run(ctx, "log", `--pretty=format:%h`, fmt.Sprintf("%s..%s", base, feat))
-	if err != nil {
-		return nil, err
-	}
-	for i := 0; i < len(commits)/2; i++ {
-		r := len(commits) - i - 1
-		commits[i], commits[r] = commits[r], commits[i]
-	}
-	return commits, err
-}
-
-func (g *git) DiffHash(ctx context.Context, commit string) ([]byte, error) {
-	hash := sha256.New()
-
-	diff, err := g.run(ctx, "diff", "--unified=0", commit+"~", commit)
-	if err != nil {
-		return nil, err
-	}
-	diff = diff[2:]
-
-	for _, line := range diff {
-		hash.Write([]byte(line))
-	}
-
-	sum := hash.Sum(nil)
-
-	if g.verbose {
-		fmt.Println("--- diff ---")
-		for _, d := range diff {
-			fmt.Println(d)
-		}
-		fmt.Printf("%x\n", sum)
-		fmt.Println("--- diff ---")
-	}
-
-	return sum, nil
-}
-
-func (g *git) SwitchBranch(ctx context.Context, branch, commit string) error {
-	_, err := g.run(ctx, "branch", "-f", branch, commit)
-	return err
+	return output, nil
 }
