@@ -87,9 +87,9 @@ func run() error {
 						},
 					},
 					{
-						Name:    "clear",
+						Name:    "delete",
 						Usage:   "delete review branches",
-						Aliases: []string{"c"},
+						Aliases: []string{"d"},
 						Action:  gitDeleteReviewBranches,
 						Flags: []cli.Flag{
 							FlagFeat,
@@ -102,9 +102,10 @@ func run() error {
 						Action:  gitShowAllBranches,
 					},
 					{
-						Name:   "check",
-						Usage:  "check and update feature branches",
-						Action: gitCheckFeatureStack,
+						Name:    "check",
+						Aliases: []string{"c"},
+						Usage:   "check and update feature branches",
+						Action:  gitCheckFeatureStack,
 						Flags: []cli.Flag{
 							FlagBase,
 							FlagFeat,

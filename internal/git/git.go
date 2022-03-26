@@ -93,6 +93,10 @@ func (g *git) SwitchBranch(branch, commit string) error {
 		panic(branch)
 	}
 	_, err := g.run("branch", "-f", branch, commit)
+	if err != nil {
+		return err
+	}
+	_, err = g.run("push", "origin", "--force", branch+":"+branch)
 	return err
 }
 
