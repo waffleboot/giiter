@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -111,7 +112,8 @@ func run() error {
 					},
 					{
 						Name:    "assign",
-						Usage:   "",
+						Usage:   "reassign commit to review branch",
+						Action:  gitAssign,
 						Aliases: []string{"a"},
 						Flags: []cli.Flag{
 							FlagBase,
@@ -313,7 +315,18 @@ func check(ctx *cli.Context) ([]git.Branch, []string, error) {
 		}
 	}
 
-	return fixBranches, fixCommits, nil
+	if len(fixCommits) > 0 {
+		return fixBranches, fixCommits, nil
+	}
+
+	for i := range fixBranches {
+		err := g.DeleteBranch(fixBranches[i].Name)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	return nil, nil, nil
 }
 
 func gitCheckFeatureStack(ctx *cli.Context) error {
@@ -347,6 +360,49 @@ func gitCheckFeatureStack(ctx *cli.Context) error {
 	}
 
 	return nil
+}
+
+func gitAssign(ctx *cli.Context) error {
+	fixBranches, fixCommits, err := check(ctx)
+	if err != nil {
+		return err
+	}
+
+	g := git.NewGit(ctx)
+
+	if ctx.NArg() < 2 {
+		return errors.New("need branch and commit")
+	}
+
+	from, to := ctx.Args().First(), ctx.Args().Get(1)
+
+	f := func() bool {
+		for i := range fixBranches {
+			if from == fixBranches[i].Name {
+				return true
+			}
+		}
+		return false
+	}()
+
+	if !f {
+		return nil
+	}
+
+	x := func() bool {
+		for i := range fixCommits {
+			if to == fixCommits[i] {
+				return true
+			}
+		}
+		return false
+	}()
+
+	if !x {
+		return nil
+	}
+
+	return g.SwitchBranch(from, to)
 }
 
 func reviewBranchPrefix(feature string) string {
