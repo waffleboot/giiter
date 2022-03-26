@@ -48,12 +48,26 @@ func (g *git) Branches() ([]Branch, error) {
 }
 
 func (g *git) DeleteBranch(name string) error {
+	if name == "master" {
+		panic(name)
+	}
 	_, err := g.run("branch", "-D", name)
+	if err != nil {
+		return err
+	}
+	_, err = g.run("push", "origin", "--delete", name)
 	return err
 }
 
 func (g *git) CreateBranch(name, base string) error {
+	if name == "master" {
+		panic(name)
+	}
 	_, err := g.run("branch", name, base)
+	if err != nil {
+		return err
+	}
+	_, err = g.run("push", "origin", name+":"+name)
 	return err
 }
 
@@ -75,6 +89,9 @@ func (g *git) Commits(base, feat string) ([]string, error) {
 }
 
 func (g *git) SwitchBranch(branch, commit string) error {
+	if branch == "master" {
+		panic(branch)
+	}
 	_, err := g.run("branch", "-f", branch, commit)
 	return err
 }

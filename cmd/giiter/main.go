@@ -255,13 +255,13 @@ func check(ctx *cli.Context) ([]git.Branch, []string, error) {
 		return nil, nil, err
 	}
 
-	hashToCommit := make(map[string]string)
+	diffHashToCommit := make(map[string]string)
 	for _, commit := range commits {
 		hash, err := g.DiffHash(commit)
 		if err != nil {
 			return nil, nil, err
 		}
-		hashToCommit[hash] = commit
+		diffHashToCommit[hash] = commit
 	}
 
 	branches, err := g.Branches()
@@ -272,7 +272,7 @@ func check(ctx *cli.Context) ([]git.Branch, []string, error) {
 	prefix := reviewBranchPrefix(feat)
 
 	branchToSHA := make(map[string]string)
-	hashToBranch := make(map[string]string)
+	diffHashToBranch := make(map[string]string)
 	for _, branch := range branches {
 		if strings.HasPrefix(branch.Name, prefix) {
 
@@ -281,7 +281,7 @@ func check(ctx *cli.Context) ([]git.Branch, []string, error) {
 				return nil, nil, err
 			}
 
-			hashToBranch[hash] = branch.Name
+			diffHashToBranch[hash] = branch.Name
 			branchToSHA[branch.Name] = branch.SHA
 		}
 	}
@@ -297,8 +297,8 @@ func check(ctx *cli.Context) ([]git.Branch, []string, error) {
 	// }
 
 	var fixBranches []git.Branch
-	for hash, branch := range hashToBranch {
-		if commit, ok := hashToCommit[hash]; ok {
+	for hash, branch := range diffHashToBranch {
+		if commit, ok := diffHashToCommit[hash]; ok {
 			g.SwitchBranch(branch, commit)
 		} else {
 			fixBranches = append(fixBranches, git.Branch{
@@ -309,8 +309,8 @@ func check(ctx *cli.Context) ([]git.Branch, []string, error) {
 	}
 
 	var fixCommits []string
-	for hash, commit := range hashToCommit {
-		if _, ok := hashToBranch[hash]; !ok {
+	for hash, commit := range diffHashToCommit {
+		if _, ok := diffHashToBranch[hash]; !ok {
 			fixCommits = append(fixCommits, commit)
 		}
 	}
