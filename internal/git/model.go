@@ -18,3 +18,11 @@ type Record struct {
 	ReviewSubj   string
 	ReviewBranch string
 }
+
+func (r *Record) IsNewCommit() bool {
+	return r.ReviewSHA == ""
+}
+
+func (r *Record) IsOldCommit() bool {
+	return r.FeatureSHA == ""
+}
