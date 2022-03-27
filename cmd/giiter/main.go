@@ -13,7 +13,6 @@ import (
 
 	"github.com/urfave/cli/v2"
 	"github.com/waffleboot/giiter/internal/git"
-	"github.com/waffleboot/giiter/internal/gitlab"
 )
 
 var (
@@ -179,27 +178,21 @@ func gitMakeReviewBranches(ctx *cli.Context) error {
 		}
 
 		maxID++
-
 		branch := fmt.Sprintf("review/%s/%d", feat, maxID)
 
-		if err := g.CreateBranch(branch, records[i].FeatureSHA); err != nil {
+		targetBranch := base
+		if i > 0 {
+			targetBranch = records[i-1].ReviewBranch
+		}
+
+		if err := g.CreateBranch(branch,
+			records[i].FeatureSHA,
+			targetBranch,
+			records[i].FeatureSubj); err != nil {
 			return err
 		}
 
 		records[i].ReviewBranch = branch
-
-		mr := gitlab.MergeRequest{
-			Title:        records[i].FeatureSubj,
-			SourceBranch: branch,
-			TargetBranch: base,
-		}
-		if i > 0 {
-			mr.TargetBranch = records[i-1].ReviewBranch
-		}
-
-		if err := gitlab.CreateMergeRequest(ctx.Context, ctx.String("token"), mr); err != nil {
-			return err
-		}
 
 	}
 

@@ -59,15 +59,20 @@ func (g *git) DeleteBranch(name string) error {
 	return err
 }
 
-func (g *git) CreateBranch(name, base string) error {
+func (g *git) CreateBranch(name, sha, targetBranch, title string) error {
 	if name == "master" {
 		panic(name)
 	}
-	_, err := g.run("branch", name, base)
+	_, err := g.run("branch", name, sha)
 	if err != nil {
 		return err
 	}
-	_, err = g.run("push", "origin", name+":"+name)
+	_, err = g.run("push",
+		"-o", "merge_request.create",
+		"-o", "merge_request.target="+targetBranch,
+		"-o", "merge_request.title="+title,
+		"-o", "merge_request.label=review",
+		"origin", name+":"+name)
 	return err
 }
 
