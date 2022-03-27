@@ -120,7 +120,7 @@ func (g *git) Refresh(base, feat string) ([]Record, error) {
 
 	for i := range records {
 		record := records[i]
-		if record.FeatureSHA == "" || record.IsNewCommit() || record.FeatureSHA == record.ReviewSHA {
+		if record.IsOldCommit() || record.IsNewCommit() || record.FeatureSHA == record.ReviewSHA {
 			continue
 		}
 		if err = g.SwitchBranch(record.ReviewBranch, record.FeatureSHA); err != nil {

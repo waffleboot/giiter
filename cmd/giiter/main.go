@@ -143,7 +143,7 @@ func gitListFeatureCommits(ctx *cli.Context) error {
 		record := records[i]
 		if record.IsNewCommit() {
 			fmt.Printf("%d) + %s %s\n", i+1, record.FeatureSHA, record.FeatureSubj)
-		} else if record.FeatureSHA == "" {
+		} else if record.IsOldCommit() {
 			fmt.Printf("%d) - %s [%s] %s\n", i+1, record.ReviewSHA, record.ReviewBranch, record.ReviewSubj)
 		} else {
 			fmt.Printf("%d) . %s [%s] %s\n", i+1, record.FeatureSHA, record.ReviewBranch, record.FeatureSubj)
