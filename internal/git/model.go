@@ -11,11 +11,10 @@ type Branch struct {
 }
 
 type Record struct {
+	ID           int
 	FeatureSHA   string
 	FeatureSubj  string
 	ReviewSHA    string
 	ReviewSubj   string
 	ReviewBranch string
-	// DiffHash     string
-	MergeRequest int
 }

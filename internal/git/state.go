@@ -51,16 +51,16 @@ func (g *git) State(base, feat string) ([]Record, error) {
 
 		branchSuffix := branch.Name[len(reviewBranchPrefix):]
 
-		mergeRequest, err := strconv.Atoi(branchSuffix)
+		id, err := strconv.Atoi(branchSuffix)
 		if err != nil {
 			return nil, err
 		}
 
 		if index, ok := featureSHAIndex[reviewSHA]; ok {
+			records[index].ID = id
 			records[index].ReviewSHA = reviewSHA
 			records[index].ReviewSubj = records[index].FeatureSubj
 			records[index].ReviewBranch = branch.Name
-			records[index].MergeRequest = mergeRequest
 			continue
 		}
 
@@ -90,20 +90,20 @@ func (g *git) State(base, feat string) ([]Record, error) {
 
 		if index, ok := featureDiffHashToIndex[diffHash]; ok {
 
+			records[index].ID = id
 			records[index].ReviewSHA = commit.SHA
 			records[index].ReviewSubj = commit.Subject
 			records[index].ReviewBranch = branch.Name
-			records[index].MergeRequest = mergeRequest
 			continue
 		}
 
 		record := Record{
+			ID:           id,
 			FeatureSHA:   "",
 			FeatureSubj:  "",
 			ReviewSHA:    commit.SHA,
 			ReviewSubj:   commit.Subject,
 			ReviewBranch: branch.Name,
-			MergeRequest: mergeRequest,
 		}
 
 		records = append(records, record)

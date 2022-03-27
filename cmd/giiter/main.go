@@ -165,12 +165,22 @@ func gitMakeReviewBranches(ctx *cli.Context) error {
 		return err
 	}
 
+	var maxID int
+
+	for i := range records {
+		if records[i].ReviewSHA != "" && records[i].ID > maxID {
+			maxID = records[i].ID
+		}
+	}
+
 	for i := range records {
 		if records[i].ReviewSHA != "" {
 			continue
 		}
 
-		branch := fmt.Sprintf("review/%s/%d", feat, i+1)
+		maxID++
+
+		branch := fmt.Sprintf("review/%s/%d", feat, maxID)
 
 		if err := g.CreateBranch(branch, records[i].FeatureSHA); err != nil {
 			return err
