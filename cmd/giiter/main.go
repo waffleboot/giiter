@@ -227,33 +227,6 @@ func gitShowAllBranches(ctx *cli.Context) error {
 	return nil
 }
 
-// func gitCheckFeatureStack(ctx *cli.Context) error {
-
-// 	if len(fixBranches) > 0 {
-// 		fmt.Println("FIX BRANCHES")
-// 		for _, branch := range fixBranches {
-// 			commit, err := g.FindCommit(branch.Name)
-// 			if err != nil {
-// 				return err
-// 			}
-// 			fmt.Printf("git branch -f %s Subj:%s\n", branch.Name, commit.Subject)
-// 		}
-// 	}
-
-// 	if len(fixCommits) > 0 {
-// 		fmt.Println("FIX COMMITS")
-// 		for _, sha := range fixCommits {
-// 			commit, err := g.FindCommit(sha)
-// 			if err != nil {
-// 				return err
-// 			}
-// 			fmt.Printf("%s %s\n", commit.SHA, commit.Subject)
-// 		}
-// 	}
-
-// 	return nil
-// }
-
 func gitAssign(ctx *cli.Context) error {
 	if ctx.NArg() < 2 {
 		return errors.New("need branch and commit")
