@@ -13,6 +13,7 @@ import (
 
 	"github.com/urfave/cli/v2"
 	"github.com/waffleboot/giiter/internal/git"
+	"github.com/waffleboot/giiter/internal/gitlab"
 )
 
 var (
@@ -43,6 +44,11 @@ var (
 		Aliases: []string{"d"},
 		Usage:   "debug",
 	}
+	FlagToken = &cli.StringFlag{
+		Name:    "token",
+		Aliases: []string{"t"},
+		EnvVars: []string{"TOKEN"},
+	}
 )
 
 func main() {
@@ -58,6 +64,7 @@ func run() error {
 	app := &cli.App{
 		Name: "giiter",
 		Flags: []cli.Flag{
+			FlagToken,
 			FlagVerbose,
 			FlagDebug,
 		},
@@ -162,10 +169,28 @@ func gitMakeReviewBranches(ctx *cli.Context) error {
 		if records[i].ReviewSHA != "" {
 			continue
 		}
+
 		branch := fmt.Sprintf("review/%s/%d", feat, i+1)
+
 		if err := g.CreateBranch(branch, records[i].FeatureSHA); err != nil {
 			return err
 		}
+
+		records[i].ReviewBranch = branch
+
+		mr := gitlab.MergeRequest{
+			Title:        records[i].FeatureSubj,
+			SourceBranch: branch,
+			TargetBranch: base,
+		}
+		if i > 0 {
+			mr.TargetBranch = records[i-1].ReviewBranch
+		}
+
+		if err := gitlab.CreateMergeRequest(ctx.Context, ctx.String("token"), mr); err != nil {
+			return err
+		}
+
 	}
 
 	return gitListFeatureCommits(ctx)
