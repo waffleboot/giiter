@@ -109,6 +109,21 @@ func (g *git) State(base, feat string) ([]Record, error) {
 		records = append(records, record)
 	}
 
+	var maxID int
+
+	for i := range records {
+		if records[i].ID > maxID {
+			maxID = records[i].ID
+		}
+	}
+
+	for i := range records {
+		if records[i].IsNewCommit() {
+			maxID++
+			records[i].ID = maxID
+		}
+	}
+
 	return records, nil
 }
 
