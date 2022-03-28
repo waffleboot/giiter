@@ -43,6 +43,11 @@ var (
 		Aliases: []string{"d"},
 		Usage:   "debug",
 	}
+	FlagPrefix = &cli.StringFlag{
+		Name:    "prefix",
+		Aliases: []string{"p"},
+		Usage:   "merge review prefix",
+	}
 )
 
 func main() {
@@ -59,8 +64,8 @@ func run() error {
 		Name: "giiter",
 		Flags: []cli.Flag{
 			FlagRepo,
-			FlagVerbose,
 			FlagDebug,
+			FlagVerbose,
 		},
 		Commands: []*cli.Command{
 			{
@@ -82,6 +87,7 @@ func run() error {
 				Flags: []cli.Flag{
 					FlagBase,
 					FlagFeat,
+					FlagPrefix,
 				},
 			},
 			{
@@ -163,11 +169,20 @@ func gitMakeReviewBranches(ctx *cli.Context) error {
 			targetBranch = records[i-1].ReviewBranch
 		}
 
+		title := "Draft: "
+		if prefix := ctx.String("prefix"); prefix != "" {
+			title += prefix + ": "
+		}
+		title += records[i].FeatureMsg.Subject
+
 		if err := g.CreateBranch(
-			branch,
-			records[i].FeatureSHA,
-			targetBranch,
-			records[i].FeatureMsg); err != nil {
+			git.CreateBranchRequest{
+				SHA:         records[i].FeatureSHA,
+				Branch:      branch,
+				Target:      targetBranch,
+				Title:       title,
+				Description: records[i].FeatureMsg.Description,
+			}); err != nil {
 			return err
 		}
 

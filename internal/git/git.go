@@ -60,11 +60,19 @@ func (g *git) DeleteBranch(name string) error {
 	return err
 }
 
-func (g *git) CreateBranch(name, sha, targetBranch string, message Message) error {
-	if name == "master" {
-		panic(name)
+type CreateBranchRequest struct {
+	SHA         string
+	Branch      string
+	Target      string
+	Title       string
+	Description string
+}
+
+func (g *git) CreateBranch(req CreateBranchRequest) error {
+	if req.Branch == "master" {
+		panic(req.Branch)
 	}
-	_, err := g.run("branch", name, sha)
+	_, err := g.run("branch", req.Branch, req.SHA)
 	if err != nil {
 		return err
 	}
@@ -72,16 +80,16 @@ func (g *git) CreateBranch(name, sha, targetBranch string, message Message) erro
 	args := []string{
 		"push",
 		"-o", "merge_request.create",
-		"-o", "merge_request.target=" + targetBranch,
-		"-o", "merge_request.title=DRAFT: " + message.Subject,
+		"-o", "merge_request.target=" + req.Target,
+		"-o", "merge_request.title=" + req.Title,
 		"-o", "merge_request.label=review",
 	}
 
-	if message.Description != "" {
-		args = append(args, "-o", "merge_request.description="+message.Description)
+	if req.Description != "" {
+		args = append(args, "-o", "merge_request.description="+req.Description)
 	}
 
-	args = append(args, "origin", name+":"+name)
+	args = append(args, "origin", req.Branch+":"+req.Branch)
 
 	_, err = g.run(args...)
 	return err
