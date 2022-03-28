@@ -70,7 +70,7 @@ func (g *git) CreateBranch(name, sha, targetBranch, title string) error {
 	_, err = g.run("push",
 		"-o", "merge_request.create",
 		"-o", "merge_request.target="+targetBranch,
-		"-o", "merge_request.title="+title,
+		"-o", "merge_request.title=DRAFT: "+title,
 		"-o", "merge_request.label=review",
 		"origin", name+":"+name)
 	return err
