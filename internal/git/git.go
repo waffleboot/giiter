@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+	"strings"
 
 	"github.com/urfave/cli/v2"
 )
@@ -59,7 +60,7 @@ func (g *git) DeleteBranch(name string) error {
 	return err
 }
 
-func (g *git) CreateBranch(name, sha, targetBranch, title string) error {
+func (g *git) CreateBranch(name, sha, targetBranch string, message Message) error {
 	if name == "master" {
 		panic(name)
 	}
@@ -67,12 +68,22 @@ func (g *git) CreateBranch(name, sha, targetBranch, title string) error {
 	if err != nil {
 		return err
 	}
-	_, err = g.run("push",
+
+	args := []string{
+		"push",
 		"-o", "merge_request.create",
-		"-o", "merge_request.target="+targetBranch,
-		"-o", "merge_request.title=DRAFT: "+title,
+		"-o", "merge_request.target=" + targetBranch,
+		"-o", "merge_request.title=DRAFT: " + message.Subject,
 		"-o", "merge_request.label=review",
-		"origin", name+":"+name)
+	}
+
+	if message.Description != "" {
+		args = append(args, "-o", "merge_request.description="+message.Description)
+	}
+
+	args = append(args, "origin", name+":"+name)
+
+	_, err = g.run(args...)
 	return err
 }
 
@@ -106,14 +117,22 @@ func (g *git) SwitchBranch(branch, commit string) error {
 }
 
 func (g *git) FindCommit(sha string) (*Commit, error) {
-	output, err := g.run("log", "--pretty=format:%s", sha, "-1")
+	output, err := g.run("log", "--pretty=format:%s%n%b", sha, "-1")
 	if err != nil {
 		return nil, err
 	}
 
+	var body string
+	if len(output) > 1 {
+		body = strings.Join(output[1:], "\n")
+	}
+
 	commit := &Commit{
-		SHA:     sha,
-		Subject: output[0],
+		SHA: sha,
+		Message: Message{
+			Subject:     output[0],
+			Description: body,
+		},
 	}
 
 	return commit, nil

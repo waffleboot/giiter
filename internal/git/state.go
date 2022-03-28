@@ -24,8 +24,8 @@ func (g *git) State(base, feat string) ([]Record, error) {
 		}
 
 		record := Record{
-			FeatureSHA:  commit.SHA,
-			FeatureSubj: commit.Subject,
+			FeatureSHA: commit.SHA,
+			FeatureMsg: commit.Message,
 		}
 		records = append(records, record)
 
@@ -59,7 +59,7 @@ func (g *git) State(base, feat string) ([]Record, error) {
 		if index, ok := featureSHAIndex[reviewSHA]; ok {
 			records[index].ID = id
 			records[index].ReviewSHA = reviewSHA
-			records[index].ReviewSubj = records[index].FeatureSubj
+			records[index].ReviewMsg = records[index].FeatureMsg
 			records[index].ReviewBranch = branch.Name
 			continue
 		}
@@ -92,7 +92,7 @@ func (g *git) State(base, feat string) ([]Record, error) {
 
 			records[index].ID = id
 			records[index].ReviewSHA = commit.SHA
-			records[index].ReviewSubj = commit.Subject
+			records[index].ReviewMsg = commit.Message
 			records[index].ReviewBranch = branch.Name
 			continue
 		}
@@ -100,9 +100,9 @@ func (g *git) State(base, feat string) ([]Record, error) {
 		record := Record{
 			ID:           id,
 			FeatureSHA:   "",
-			FeatureSubj:  "",
+			FeatureMsg:   Message{"", ""},
 			ReviewSHA:    commit.SHA,
-			ReviewSubj:   commit.Subject,
+			ReviewMsg:    commit.Message,
 			ReviewBranch: branch.Name,
 		}
 
@@ -142,7 +142,7 @@ func (g *git) Refresh(base, feat string) ([]Record, error) {
 			return nil, err
 		}
 		records[i].ReviewSHA = record.FeatureSHA
-		records[i].ReviewSubj = record.FeatureSubj
+		records[i].ReviewMsg = record.FeatureMsg
 	}
 
 	for i := range records {

@@ -1,8 +1,13 @@
 package git
 
+type Message struct {
+	Subject     string
+	Description string
+}
+
 type Commit struct {
 	SHA     string
-	Subject string
+	Message Message
 }
 
 type Branch struct {
@@ -13,9 +18,9 @@ type Branch struct {
 type Record struct {
 	ID           int
 	FeatureSHA   string
-	FeatureSubj  string
+	FeatureMsg   Message
 	ReviewSHA    string
-	ReviewSubj   string
+	ReviewMsg    Message
 	ReviewBranch string
 }
 
