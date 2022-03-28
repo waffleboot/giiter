@@ -12,6 +12,7 @@ import (
 	"syscall"
 
 	"github.com/urfave/cli/v2"
+	"github.com/waffleboot/giiter/internal/config"
 	"github.com/waffleboot/giiter/internal/git"
 )
 
@@ -66,6 +67,16 @@ func run() error {
 			FlagRepo,
 			FlagDebug,
 			FlagVerbose,
+		},
+		Before: func(*cli.Context) error {
+			if err := config.LoadConfig(); err != nil {
+				return err
+			}
+			return nil
+		},
+		After: func(*cli.Context) error {
+			config.Close()
+			return nil
 		},
 		Commands: []*cli.Command{
 			{

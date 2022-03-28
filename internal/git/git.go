@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/urfave/cli/v2"
+	"github.com/waffleboot/giiter/internal/config"
 )
 
 type git struct {
@@ -153,6 +154,15 @@ func (g *git) run(args ...string) ([]string, error) {
 			fmt.Printf(" %s", args[i])
 		}
 		fmt.Println()
+	}
+
+	if config.Config.Log != nil {
+		fmt.Fprint(config.Config.Log, "git ")
+		for i := range args {
+			fmt.Fprint(config.Config.Log, args[i])
+			fmt.Fprint(config.Config.Log, " ")
+		}
+		fmt.Fprintln(config.Config.Log)
 	}
 
 	cmd := exec.CommandContext(g.context, "git", args...)
