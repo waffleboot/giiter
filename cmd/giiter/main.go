@@ -43,11 +43,6 @@ var (
 		Aliases: []string{"d"},
 		Usage:   "debug",
 	}
-	FlagToken = &cli.StringFlag{
-		Name:    "token",
-		Aliases: []string{"t"},
-		EnvVars: []string{"TOKEN"},
-	}
 )
 
 func main() {
@@ -63,64 +58,56 @@ func run() error {
 	app := &cli.App{
 		Name: "giiter",
 		Flags: []cli.Flag{
-			FlagToken,
+			FlagRepo,
 			FlagVerbose,
 			FlagDebug,
 		},
 		Commands: []*cli.Command{
 			{
-				Name:    "git",
-				Aliases: []string{"g"},
-				Subcommands: []*cli.Command{
-					{
-						Name:    "list",
-						Usage:   "list feature commits",
-						Aliases: []string{"l"},
-						Action:  gitListFeatureCommits,
-						Flags: []cli.Flag{
-							FlagBase,
-							FlagFeat,
-						},
-					},
-					{
-						Name:    "make",
-						Usage:   "make review branches",
-						Aliases: []string{"m"},
-						Action:  gitMakeReviewBranches,
-						Flags: []cli.Flag{
-							FlagBase,
-							FlagFeat,
-						},
-					},
-					{
-						Name:    "delete",
-						Usage:   "delete review branches",
-						Aliases: []string{"d"},
-						Action:  gitDeleteReviewBranches,
-						Flags: []cli.Flag{
-							FlagFeat,
-						},
-					},
-					{
-						Name:    "assign",
-						Usage:   "reassign commit to review branch",
-						Action:  gitAssign,
-						Aliases: []string{"a"},
-						Flags: []cli.Flag{
-							FlagBase,
-							FlagFeat,
-						},
-					},
-					{
-						Name:    "branches",
-						Usage:   "show all branches",
-						Aliases: []string{"b"},
-						Action:  gitShowAllBranches,
-					},
-				},
+
+				Name:    "list",
+				Usage:   "list feature commits",
+				Aliases: []string{"l"},
+				Action:  gitListFeatureCommits,
 				Flags: []cli.Flag{
-					FlagRepo,
+					FlagBase,
+					FlagFeat,
 				},
+			},
+			{
+				Name:    "make",
+				Usage:   "make review branches",
+				Aliases: []string{"m"},
+				Action:  gitMakeReviewBranches,
+				Flags: []cli.Flag{
+					FlagBase,
+					FlagFeat,
+				},
+			},
+			{
+				Name:    "delete",
+				Usage:   "delete review branches",
+				Aliases: []string{"d"},
+				Action:  gitDeleteReviewBranches,
+				Flags: []cli.Flag{
+					FlagFeat,
+				},
+			},
+			{
+				Name:    "assign",
+				Usage:   "reassign commit to review branch",
+				Action:  gitAssign,
+				Aliases: []string{"a"},
+				Flags: []cli.Flag{
+					FlagBase,
+					FlagFeat,
+				},
+			},
+			{
+				Name:    "branches",
+				Usage:   "show all branches",
+				Aliases: []string{"b"},
+				Action:  gitShowAllBranches,
 			},
 		},
 	}
