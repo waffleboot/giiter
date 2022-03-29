@@ -3,19 +3,62 @@ package git
 import (
 	"crypto/sha256"
 	"fmt"
+	"strings"
 )
 
-func (g *git) DiffHash(sha string) (string, error) {
-	diff, err := g.run("diff", "--unified=0", sha+"~", sha)
+type nullHash struct {
+	hash  string
+	valid bool
+}
+
+func (g *git) DiffHash(sha string) (nullHash, error) {
+	files, err := g.run("diff-tree", "-r", "--name-only", sha)
 	if err != nil {
-		return "", err
+		return nullHash{}, err
 	}
 
-	diff = diff[2:]
+	files = files[1:]
 
 	hash := sha256.New()
-	for _, line := range diff {
-		hash.Write([]byte(line))
+
+	for i := range files {
+		file := files[i]
+		diff, err := g.run("diff-tree", "--unified=0", sha, "--", file)
+		if err != nil {
+			return nullHash{}, err
+		}
+
+		diff = diff[2:]
+
+		if strings.HasPrefix(diff[0], "new file") {
+			hash.Write([]byte("new file"))
+			hash.Write([]byte(file))
+			continue
+		}
+
+		if strings.HasPrefix(diff[0], "deleted file") {
+			hash.Write([]byte("deleted file"))
+			hash.Write([]byte(file))
+			continue
+		}
+
+		if strings.HasPrefix(diff[1], "Binary") {
+			return nullHash{valid: false}, nil
+		}
+
+		diff = diff[3:]
+
+		for _, line := range diff {
+			hash.Write([]byte(line))
+		}
+
+		if g.debug {
+			fmt.Printf("--- diff %s %s\n", sha, file)
+			for _, line := range diff {
+				fmt.Println(line)
+			}
+		}
+
 	}
 
 	sum := hash.Sum(nil)
@@ -23,12 +66,8 @@ func (g *git) DiffHash(sha string) (string, error) {
 	strSum := fmt.Sprintf("%x", sum)
 
 	if g.debug {
-		fmt.Printf("--- diff %s\n", sha)
-		for _, line := range diff {
-			fmt.Println(line)
-		}
 		fmt.Printf("Commit: %s DiffHash: %s\n", sha, strSum)
 	}
 
-	return strSum, nil
+	return nullHash{hash: strSum, valid: true}, nil
 }

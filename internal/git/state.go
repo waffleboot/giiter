@@ -79,7 +79,9 @@ func (g *git) State(base, feat string) ([]Record, error) {
 				if err != nil {
 					return nil, err
 				}
-				featureDiffHashToIndex[diffHash] = i
+				if diffHash.valid {
+					featureDiffHashToIndex[diffHash.hash] = i
+				}
 			}
 
 		}
@@ -94,12 +96,14 @@ func (g *git) State(base, feat string) ([]Record, error) {
 			return nil, err
 		}
 
-		if index, ok := featureDiffHashToIndex[diffHash]; ok {
-			records[index].ID = id
-			records[index].ReviewSHA = commit.SHA
-			records[index].ReviewMsg = commit.Message
-			records[index].ReviewBranch = branch.Name
-			continue
+		if diffHash.valid {
+			if index, ok := featureDiffHashToIndex[diffHash.hash]; ok {
+				records[index].ID = id
+				records[index].ReviewSHA = commit.SHA
+				records[index].ReviewMsg = commit.Message
+				records[index].ReviewBranch = branch.Name
+				continue
+			}
 		}
 
 		if config.Config.RefreshOnSubject {
