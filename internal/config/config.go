@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-var Config struct {
+var Global struct {
 	Log     *os.File
 	LogFile string `json:"log"`
 
@@ -27,23 +27,23 @@ func LoadConfig() error {
 	}
 	defer f.Close()
 
-	if err := json.NewDecoder(f).Decode(&Config); err != nil {
+	if err := json.NewDecoder(f).Decode(&Global); err != nil {
 		return err
 	}
 
-	if Config.LogFile != "" {
-		logFile, err := os.OpenFile(Config.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	if Global.LogFile != "" {
+		logFile, err := os.OpenFile(Global.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 		if err != nil {
 			return err
 		}
-		Config.Log = logFile
+		Global.Log = logFile
 	}
 
 	return nil
 }
 
 func Close() {
-	if Config.Log != nil {
-		Config.Log.Close()
+	if Global.Log != nil {
+		Global.Log.Close()
 	}
 }

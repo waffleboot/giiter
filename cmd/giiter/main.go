@@ -94,7 +94,7 @@ func run() error {
 					FlagRefreshOnSubject,
 				},
 				Before: func(ctx *cli.Context) error {
-					config.Config.RefreshOnSubject = ctx.Bool("refresh-on-subj")
+					config.Global.RefreshOnSubject = ctx.Bool("refresh-on-subj")
 					return nil
 				},
 			},

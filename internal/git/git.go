@@ -176,13 +176,13 @@ func (g *git) run(args ...string) ([]string, error) {
 		fmt.Println()
 	}
 
-	if config.Config.Log != nil {
-		fmt.Fprint(config.Config.Log, "git ")
+	if config.Global.Log != nil {
+		fmt.Fprint(config.Global.Log, "git ")
 		for i := range args {
-			fmt.Fprint(config.Config.Log, args[i])
-			fmt.Fprint(config.Config.Log, " ")
+			fmt.Fprint(config.Global.Log, args[i])
+			fmt.Fprint(config.Global.Log, " ")
 		}
-		fmt.Fprintln(config.Config.Log)
+		fmt.Fprintln(config.Global.Log)
 	}
 
 	cmd := exec.CommandContext(g.context, "git", args...)

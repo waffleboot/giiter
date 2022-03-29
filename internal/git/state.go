@@ -106,7 +106,7 @@ func (g *git) State(base, feat string) ([]Record, error) {
 			}
 		}
 
-		if config.Config.RefreshOnSubject {
+		if config.Global.RefreshOnSubject {
 			if index, ok := featureSubjIndex[commit.Message.Subject]; ok {
 				records[index].ID = id
 				records[index].ReviewSHA = commit.SHA
