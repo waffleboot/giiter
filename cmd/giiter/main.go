@@ -49,6 +49,10 @@ var (
 		Aliases: []string{"p"},
 		Usage:   "merge review prefix",
 	}
+	FlagRefreshOnSubject = &cli.BoolFlag{
+		Name:  "refresh-on-subj",
+		Usage: "refresh using by subject",
+	}
 )
 
 func main() {
@@ -80,7 +84,6 @@ func run() error {
 		},
 		Commands: []*cli.Command{
 			{
-
 				Name:    "list",
 				Usage:   "list feature commits",
 				Aliases: []string{"l"},
@@ -88,6 +91,11 @@ func run() error {
 				Flags: []cli.Flag{
 					FlagBase,
 					FlagFeat,
+					FlagRefreshOnSubject,
+				},
+				Before: func(ctx *cli.Context) error {
+					config.Config.RefreshOnSubject = ctx.Bool("refresh-on-subj")
+					return nil
 				},
 			},
 			{

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/waffleboot/giiter/internal/config"
 )
 
 func (g *git) State(base, feat string) ([]Record, error) {
@@ -15,6 +17,8 @@ func (g *git) State(base, feat string) ([]Record, error) {
 	records := make([]Record, 0, len(commits))
 
 	featureSHAIndex := make(map[string]int)
+
+	featureSubjIndex := make(map[string]int)
 
 	for i := range commits {
 
@@ -30,6 +34,8 @@ func (g *git) State(base, feat string) ([]Record, error) {
 		records = append(records, record)
 
 		featureSHAIndex[commit.SHA] = i
+
+		featureSubjIndex[commit.Message.Subject] = i
 	}
 
 	branches, err := g.Branches()
@@ -89,12 +95,21 @@ func (g *git) State(base, feat string) ([]Record, error) {
 		}
 
 		if index, ok := featureDiffHashToIndex[diffHash]; ok {
-
 			records[index].ID = id
 			records[index].ReviewSHA = commit.SHA
 			records[index].ReviewMsg = commit.Message
 			records[index].ReviewBranch = branch.Name
 			continue
+		}
+
+		if config.Config.RefreshOnSubject {
+			if index, ok := featureSubjIndex[commit.Message.Subject]; ok {
+				records[index].ID = id
+				records[index].ReviewSHA = commit.SHA
+				records[index].ReviewMsg = commit.Message
+				records[index].ReviewBranch = branch.Name
+				continue
+			}
 		}
 
 		record := Record{

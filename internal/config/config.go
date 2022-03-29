@@ -9,6 +9,8 @@ import (
 var Config struct {
 	Log     *os.File
 	LogFile string `json:"log"`
+
+	RefreshOnSubject bool
 }
 
 func LoadConfig() error {
