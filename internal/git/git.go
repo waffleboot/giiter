@@ -97,6 +97,26 @@ func (g *git) CreateBranch(req CreateBranchRequest) error {
 }
 
 func (g *git) Commits(base, feat string) ([]string, error) {
+	branches, err := g.Branches()
+	if err != nil {
+		return nil, err
+	}
+
+	var baseFound, featFound bool
+	for i := range branches {
+		branch := branches[i].Name
+		baseFound = baseFound || (branch == base)
+		featFound = featFound || (branch == feat)
+	}
+
+	if !baseFound {
+		return nil, fmt.Errorf("branch '%s' not found", base)
+	}
+
+	if !featFound {
+		return nil, fmt.Errorf("branch '%s' not found", feat)
+	}
+
 	fromTo := fmt.Sprintf("%s..%s", base, feat)
 
 	commits, err := g.run("log", `--pretty=format:%h`, fromTo)
