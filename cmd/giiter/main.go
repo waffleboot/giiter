@@ -53,6 +53,11 @@ var (
 		Name:  "refresh-on-subj",
 		Usage: "refresh using by subject",
 	}
+	FlagPush = &cli.BoolFlag{
+		Name:    "push",
+		Aliases: []string{"p"},
+		Usage:   "git push",
+	}
 )
 
 func main() {
@@ -69,6 +74,7 @@ func run() error {
 		Name: "giiter",
 		Flags: []cli.Flag{
 			FlagRepo,
+			FlagPush,
 			FlagDebug,
 			FlagVerbose,
 		},

@@ -13,6 +13,7 @@ import (
 )
 
 type git struct {
+	push    bool
 	repo    string
 	debug   bool
 	verbose bool
@@ -23,6 +24,7 @@ type Opts func(*git)
 
 func NewGit(ctx *cli.Context) *git {
 	g := &git{
+		push:    ctx.Bool("push"),
 		repo:    ctx.String("repo"),
 		debug:   ctx.Bool("debug"),
 		verbose: ctx.Bool("verbose"),
@@ -168,6 +170,9 @@ func (g *git) FindCommit(sha string) (*Commit, error) {
 }
 
 func (g *git) run(args ...string) ([]string, error) {
+	if !g.push && args[0] == "push" {
+		return nil, nil
+	}
 	if g.verbose {
 		fmt.Print("git")
 		for i := range args {
