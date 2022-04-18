@@ -11,53 +11,9 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 	"github.com/waffleboot/giiter/internal/config"
 	"github.com/waffleboot/giiter/internal/git"
-)
-
-var (
-	FlagRepo = &cli.StringFlag{
-		Name:    "repo",
-		Usage:   "path to git repository",
-		Aliases: []string{"r"},
-	}
-	FlagBase = &cli.StringFlag{
-		Name:     "base",
-		Aliases:  []string{"b"},
-		Usage:    "base branch",
-		Required: true,
-	}
-	FlagFeat = &cli.StringFlag{
-		Name:     "feature",
-		Aliases:  []string{"f"},
-		Usage:    "feature branch",
-		Required: true,
-	}
-	FlagVerbose = &cli.BoolFlag{
-		Name:    "verbose",
-		Aliases: []string{"v"},
-		Usage:   "verbose",
-	}
-	FlagDebug = &cli.BoolFlag{
-		Name:    "debug",
-		Aliases: []string{"d"},
-		Usage:   "debug",
-	}
-	FlagPrefix = &cli.StringFlag{
-		Name:    "prefix",
-		Aliases: []string{"p"},
-		Usage:   "merge review prefix",
-	}
-	FlagRefreshOnSubject = &cli.BoolFlag{
-		Name:  "refresh-on-subj",
-		Usage: "refresh using by subject",
-	}
-	FlagPush = &cli.BoolFlag{
-		Name:    "push",
-		Aliases: []string{"p"},
-		Usage:   "git push",
-	}
 )
 
 func main() {
@@ -66,93 +22,117 @@ func main() {
 	}
 }
 
+var (
+	base             string
+	feature          string
+	refreshOnSubject bool
+	prefix           string
+	repo             string
+	push             bool
+	debug            bool
+	verbose          bool
+	g                *git.Git
+)
+
+var rootCmd = &cobra.Command{
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		if err := config.LoadConfig(); err != nil {
+			return err
+		}
+		g = &git.Git{
+			Push:    push,
+			Repo:    repo,
+			Debug:   debug,
+			Verbose: verbose,
+		}
+		return nil
+	},
+	PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
+		config.Close()
+		return nil
+	},
+}
+
+var listCmd = &cobra.Command{
+	Use:     "list",
+	Short:   "list feature commits",
+	Aliases: []string{"l"},
+	RunE:    gitListFeatureCommits,
+}
+
+var makeCmd = &cobra.Command{
+	Use:     "make",
+	Short:   "make review branches",
+	Aliases: []string{"m"},
+	RunE:    gitMakeReviewBranches,
+}
+
+var deleteCmd = &cobra.Command{
+	Use:     "delete",
+	Short:   "delete review branches",
+	Aliases: []string{"d"},
+	RunE:    gitDeleteReviewBranches,
+}
+
+var assignCmd = &cobra.Command{
+	Use:     "assign",
+	Short:   "reassign commit to review branch",
+	Aliases: []string{"a"},
+	RunE:    gitAssign,
+}
+
+var branchesCmd = &cobra.Command{
+	Use:     "branches",
+	Short:   "show all branches",
+	Aliases: []string{"b"},
+	RunE:    gitShowAllBranches,
+}
+
 func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	app := &cli.App{
-		Name: "giiter",
-		Flags: []cli.Flag{
-			FlagRepo,
-			FlagPush,
-			FlagDebug,
-			FlagVerbose,
-		},
-		Before: func(*cli.Context) error {
-			if err := config.LoadConfig(); err != nil {
-				return err
-			}
-			return nil
-		},
-		After: func(*cli.Context) error {
-			config.Close()
-			return nil
-		},
-		Commands: []*cli.Command{
-			{
-				Name:    "list",
-				Usage:   "list feature commits",
-				Aliases: []string{"l"},
-				Action:  gitListFeatureCommits,
-				Flags: []cli.Flag{
-					FlagBase,
-					FlagFeat,
-					FlagRefreshOnSubject,
-				},
-				Before: func(ctx *cli.Context) error {
-					config.Global.RefreshOnSubject = ctx.Bool("refresh-on-subj")
-					return nil
-				},
-			},
-			{
-				Name:    "make",
-				Usage:   "make review branches",
-				Aliases: []string{"m"},
-				Action:  gitMakeReviewBranches,
-				Flags: []cli.Flag{
-					FlagBase,
-					FlagFeat,
-					FlagPrefix,
-				},
-			},
-			{
-				Name:    "delete",
-				Usage:   "delete review branches",
-				Aliases: []string{"d"},
-				Action:  gitDeleteReviewBranches,
-				Flags: []cli.Flag{
-					FlagFeat,
-				},
-			},
-			{
-				Name:    "assign",
-				Usage:   "reassign commit to review branch",
-				Action:  gitAssign,
-				Aliases: []string{"a"},
-				Flags: []cli.Flag{
-					FlagBase,
-					FlagFeat,
-				},
-			},
-			{
-				Name:    "branches",
-				Usage:   "show all branches",
-				Aliases: []string{"b"},
-				Action:  gitShowAllBranches,
-			},
-		},
-	}
+	rootCmd.PersistentFlags().StringVar(&repo, "repo", "", "path to git repository")
+	rootCmd.PersistentFlags().BoolVar(&push, "push", false, "git push")
+	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "debug")
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose")
 
-	return app.RunContext(ctx, os.Args)
+	rootCmd.AddCommand(listCmd)
+	rootCmd.AddCommand(makeCmd)
+	rootCmd.AddCommand(deleteCmd)
+	rootCmd.AddCommand(assignCmd)
+	rootCmd.AddCommand(branchesCmd)
+
+	listCmd.Flags().StringVarP(&base, "base", "b", "", "base branch")
+	listCmd.MarkFlagRequired("base")
+
+	listCmd.Flags().StringVarP(&feature, "feature", "f", "", "feature branch")
+	listCmd.MarkFlagRequired("feature")
+
+	listCmd.Flags().BoolVar(&refreshOnSubject, "refresh-on-subj", false, "refresh using by subject")
+
+	makeCmd.Flags().StringVarP(&base, "base", "b", "", "base branch")
+	makeCmd.MarkFlagRequired("base")
+
+	makeCmd.Flags().StringVarP(&feature, "feature", "f", "", "feature branch")
+	makeCmd.MarkFlagRequired("feature")
+
+	makeCmd.Flags().StringVar(&prefix, "prefix", "", "merge review prefix")
+
+	deleteCmd.Flags().StringVarP(&feature, "feature", "f", "", "feature branch")
+	deleteCmd.MarkFlagRequired("feature")
+
+	assignCmd.Flags().StringVarP(&base, "base", "b", "", "base branch")
+	assignCmd.MarkFlagRequired("base")
+
+	assignCmd.Flags().StringVarP(&feature, "feature", "f", "", "feature branch")
+	assignCmd.MarkFlagRequired("feature")
+
+	return rootCmd.ExecuteContext(ctx)
 }
 
-func gitListFeatureCommits(ctx *cli.Context) error {
-	g := git.NewGit(ctx)
-
-	base := ctx.String("base")
-	feat := ctx.String("feature")
-
-	records, err := g.Refresh(base, feat)
+func gitListFeatureCommits(cmd *cobra.Command, args []string) error {
+	records, err := g.Refresh(cmd.Context(), base, feature)
 	if err != nil {
 		return err
 	}
@@ -171,13 +151,8 @@ func gitListFeatureCommits(ctx *cli.Context) error {
 	return nil
 }
 
-func gitMakeReviewBranches(ctx *cli.Context) error {
-	g := git.NewGit(ctx)
-
-	base := ctx.String("base")
-	feat := ctx.String("feature")
-
-	records, err := g.Refresh(base, feat)
+func gitMakeReviewBranches(cmd *cobra.Command, args []string) error {
+	records, err := g.Refresh(cmd.Context(), base, feature)
 	if err != nil {
 		return err
 	}
@@ -187,7 +162,7 @@ func gitMakeReviewBranches(ctx *cli.Context) error {
 			continue
 		}
 
-		branch := fmt.Sprintf("review/%s/%d", feat, records[i].ID)
+		branch := fmt.Sprintf("review/%s/%d", feature, records[i].ID)
 
 		targetBranch := base
 		if i > 0 {
@@ -195,12 +170,13 @@ func gitMakeReviewBranches(ctx *cli.Context) error {
 		}
 
 		title := "Draft: "
-		if prefix := ctx.String("prefix"); prefix != "" {
+		if prefix != "" {
 			title += prefix + ": "
 		}
 		title += records[i].FeatureMsg.Subject
 
 		if err := g.CreateBranch(
+			cmd.Context(),
 			git.CreateBranchRequest{
 				SHA:         records[i].FeatureSHA,
 				Branch:      branch,
@@ -215,24 +191,22 @@ func gitMakeReviewBranches(ctx *cli.Context) error {
 
 	}
 
-	return gitListFeatureCommits(ctx)
+	return gitListFeatureCommits(cmd, args)
 }
 
-func gitDeleteReviewBranches(ctx *cli.Context) error {
-	g := git.NewGit(ctx)
-
-	branches, err := g.Branches()
+func gitDeleteReviewBranches(cmd *cobra.Command, args []string) error {
+	branches, err := g.Branches(cmd.Context())
 	if err != nil {
 		return err
 	}
 
-	prefix := fmt.Sprintf("review/%s/", ctx.String("feature"))
+	prefix := fmt.Sprintf("review/%s/", feature)
 
 	for _, branch := range branches {
 		if !strings.HasPrefix(branch.Name, prefix) {
 			continue
 		}
-		if err := g.DeleteBranch(branch.Name); err != nil {
+		if err := g.DeleteBranch(cmd.Context(), branch.Name); err != nil {
 			return err
 		}
 	}
@@ -240,10 +214,8 @@ func gitDeleteReviewBranches(ctx *cli.Context) error {
 	return nil
 }
 
-func gitShowAllBranches(ctx *cli.Context) error {
-	g := git.NewGit(ctx)
-
-	branches, err := g.Branches()
+func gitShowAllBranches(cmd *cobra.Command, args []string) error {
+	branches, err := g.Branches(cmd.Context())
 	if err != nil {
 		return err
 	}
@@ -255,12 +227,12 @@ func gitShowAllBranches(ctx *cli.Context) error {
 	return nil
 }
 
-func gitAssign(ctx *cli.Context) error {
-	if ctx.NArg() < 2 {
+func gitAssign(cmd *cobra.Command, args []string) error {
+	if len(args) < 2 {
 		return errors.New("need branch and commit")
 	}
 
-	sha, branch := ctx.Args().First(), ctx.Args().Get(1)
+	sha, branch := args[0], args[1]
 
 	branchIndex, err := strconv.Atoi(branch)
 	if err != nil {
@@ -272,12 +244,7 @@ func gitAssign(ctx *cli.Context) error {
 		return err
 	}
 
-	g := git.NewGit(ctx)
-
-	base := ctx.String("base")
-	feat := ctx.String("feature")
-
-	records, err := g.State(base, feat)
+	records, err := g.State(cmd.Context(), base, feature)
 	if err != nil {
 		return err
 	}
@@ -301,9 +268,9 @@ func gitAssign(ctx *cli.Context) error {
 		return nil
 	}
 
-	if err := g.SwitchBranch(branch, sha); err != nil {
+	if err := g.SwitchBranch(cmd.Context(), branch, sha); err != nil {
 		return err
 	}
 
-	return gitListFeatureCommits(ctx)
+	return gitListFeatureCommits(cmd, args)
 }

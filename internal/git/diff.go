@@ -1,6 +1,7 @@
 package git
 
 import (
+	"context"
 	"crypto/sha256"
 	"fmt"
 	"strings"
@@ -11,8 +12,8 @@ type nullHash struct {
 	valid bool
 }
 
-func (g *git) DiffHash(sha string) (nullHash, error) {
-	files, err := g.run("diff-tree", "-r", "--name-only", sha)
+func (g *Git) DiffHash(ctx context.Context, sha string) (nullHash, error) {
+	files, err := g.run(ctx, "diff-tree", "-r", "--name-only", sha)
 	if err != nil {
 		return nullHash{}, err
 	}
@@ -23,7 +24,7 @@ func (g *git) DiffHash(sha string) (nullHash, error) {
 
 	for i := range files {
 		file := files[i]
-		diff, err := g.run("diff-tree", "--unified=0", sha, "--", file)
+		diff, err := g.run(ctx, "diff-tree", "--unified=0", sha, "--", file)
 		if err != nil {
 			return nullHash{}, err
 		}
@@ -52,7 +53,7 @@ func (g *git) DiffHash(sha string) (nullHash, error) {
 			hash.Write([]byte(line))
 		}
 
-		if g.debug {
+		if g.Debug {
 			fmt.Printf("--- diff %s %s\n", sha, file)
 			for _, line := range diff {
 				fmt.Println(line)
@@ -65,7 +66,7 @@ func (g *git) DiffHash(sha string) (nullHash, error) {
 
 	strSum := fmt.Sprintf("%x", sum)
 
-	if g.debug {
+	if g.Debug {
 		fmt.Printf("Commit: %s DiffHash: %s\n", sha, strSum)
 	}
 
