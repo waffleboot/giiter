@@ -14,8 +14,8 @@ type nullHash struct {
 	valid bool
 }
 
-func (g *Git) DiffHash(ctx context.Context, sha string) (nullHash, error) {
-	files, err := g.run(ctx, "diff-tree", "-r", "--name-only", sha)
+func DiffHash(ctx context.Context, sha string) (nullHash, error) {
+	files, err := run(ctx, "diff-tree", "-r", "--name-only", sha)
 	if err != nil {
 		return nullHash{}, err
 	}
@@ -26,7 +26,7 @@ func (g *Git) DiffHash(ctx context.Context, sha string) (nullHash, error) {
 
 	for i := range files {
 		file := files[i]
-		diff, err := g.run(ctx, "diff-tree", "--unified=0", sha, "--", file)
+		diff, err := run(ctx, "diff-tree", "--unified=0", sha, "--", file)
 		if err != nil {
 			return nullHash{}, err
 		}

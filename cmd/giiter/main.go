@@ -10,7 +10,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/waffleboot/giiter/internal/app"
 	"github.com/waffleboot/giiter/internal/config"
-	"github.com/waffleboot/giiter/internal/git"
 )
 
 var cfgFile string
@@ -24,7 +23,6 @@ func main() {
 
 var (
 	refreshOnSubject bool
-	g                *git.Git
 )
 
 var rootCmd = &cobra.Command{
@@ -32,7 +30,6 @@ var rootCmd = &cobra.Command{
 		if err := config.LoadConfig(); err != nil {
 			return err
 		}
-		g = &git.Git{}
 		return nil
 	},
 	PersistentPostRunE: func(cmd *cobra.Command, args []string) error {

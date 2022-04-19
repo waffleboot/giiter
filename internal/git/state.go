@@ -11,8 +11,8 @@ import (
 	"github.com/waffleboot/giiter/internal/config"
 )
 
-func (g *Git) State(ctx context.Context) ([]Record, error) {
-	commits, err := g.Commits(ctx)
+func State(ctx context.Context) ([]Record, error) {
+	commits, err := Commits(ctx)
 	if err != nil {
 		return nil, errors.WithMessage(err, "get state")
 	}
@@ -25,7 +25,7 @@ func (g *Git) State(ctx context.Context) ([]Record, error) {
 
 	for i := range commits {
 
-		commit, err := g.FindCommit(ctx, commits[i])
+		commit, err := FindCommit(ctx, commits[i])
 		if err != nil {
 			return nil, err
 		}
@@ -41,7 +41,7 @@ func (g *Git) State(ctx context.Context) ([]Record, error) {
 		featureSubjIndex[commit.Message.Subject] = i
 	}
 
-	branches, err := g.Branches(ctx)
+	branches, err := Branches(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (g *Git) State(ctx context.Context) ([]Record, error) {
 			featureDiffHashToIndex = make(map[string]int)
 
 			for i := range records {
-				diffHash, err := g.DiffHash(ctx, records[i].FeatureSHA)
+				diffHash, err := DiffHash(ctx, records[i].FeatureSHA)
 				if err != nil {
 					return nil, err
 				}
@@ -89,12 +89,12 @@ func (g *Git) State(ctx context.Context) ([]Record, error) {
 
 		}
 
-		diffHash, err := g.DiffHash(ctx, reviewSHA)
+		diffHash, err := DiffHash(ctx, reviewSHA)
 		if err != nil {
 			return nil, err
 		}
 
-		commit, err := g.FindCommit(ctx, reviewSHA)
+		commit, err := FindCommit(ctx, reviewSHA)
 		if err != nil {
 			return nil, err
 		}
@@ -149,8 +149,8 @@ func (g *Git) State(ctx context.Context) ([]Record, error) {
 	return records, nil
 }
 
-func (g *Git) Refresh(ctx context.Context) ([]Record, error) {
-	records, err := g.State(ctx)
+func Refresh(ctx context.Context) ([]Record, error) {
+	records, err := State(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +160,7 @@ func (g *Git) Refresh(ctx context.Context) ([]Record, error) {
 		if record.IsOldCommit() || record.IsNewCommit() || record.FeatureSHA == record.ReviewSHA {
 			continue
 		}
-		if err = g.SwitchBranch(ctx, record.ReviewBranch, record.FeatureSHA); err != nil {
+		if err = SwitchBranch(ctx, record.ReviewBranch, record.FeatureSHA); err != nil {
 			return nil, err
 		}
 		records[i].ReviewSHA = record.FeatureSHA
@@ -179,7 +179,7 @@ func (g *Git) Refresh(ctx context.Context) ([]Record, error) {
 			newRecords = append(newRecords, records[i])
 			continue
 		}
-		if err := g.DeleteBranch(ctx, records[i].ReviewBranch); err != nil {
+		if err := DeleteBranch(ctx, records[i].ReviewBranch); err != nil {
 			return nil, err
 		}
 	}

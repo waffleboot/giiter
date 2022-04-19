@@ -26,7 +26,7 @@ var makeCmd = &cobra.Command{
 }
 
 func makeReviewBranches(cmd *cobra.Command, args []string) error {
-	records, err := g.Refresh(cmd.Context())
+	records, err := git.Refresh(cmd.Context())
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func makeReviewBranches(cmd *cobra.Command, args []string) error {
 		}
 		title += records[i].FeatureMsg.Subject
 
-		if err := g.CreateBranch(
+		if err := git.CreateBranch(
 			cmd.Context(),
 			git.CreateBranchRequest{
 				SHA:         records[i].FeatureSHA,

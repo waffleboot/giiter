@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/waffleboot/giiter/internal/app"
+	"github.com/waffleboot/giiter/internal/git"
 )
 
 var assignCmd = &cobra.Command{
@@ -21,7 +22,7 @@ var assignCmd = &cobra.Command{
 		}
 		return nil
 	},
-	RunE:    assign,
+	RunE: assign,
 }
 
 func assign(cmd *cobra.Command, args []string) error {
@@ -41,7 +42,7 @@ func assign(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	records, err := g.State(cmd.Context())
+	records, err := git.State(cmd.Context())
 	if err != nil {
 		return err
 	}
@@ -65,7 +66,7 @@ func assign(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	if err := g.SwitchBranch(cmd.Context(), branch, sha); err != nil {
+	if err := git.SwitchBranch(cmd.Context(), branch, sha); err != nil {
 		return err
 	}
 

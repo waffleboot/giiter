@@ -13,10 +13,8 @@ import (
 	"github.com/waffleboot/giiter/internal/config"
 )
 
-type Git struct{}
-
-func (g *Git) Branches(ctx context.Context) ([]Branch, error) {
-	output, err := g.run(ctx, "branch", "--format=%(objectname:short) %(refname:short)")
+func Branches(ctx context.Context) ([]Branch, error) {
+	output, err := run(ctx, "branch", "--format=%(objectname:short) %(refname:short)")
 	if err != nil {
 		return nil, errors.WithMessage(err, "get all branches")
 	}
@@ -33,15 +31,15 @@ func (g *Git) Branches(ctx context.Context) ([]Branch, error) {
 	return branches, nil
 }
 
-func (g *Git) DeleteBranch(ctx context.Context, name string) error {
+func DeleteBranch(ctx context.Context, name string) error {
 	if name == "master" {
 		panic(name)
 	}
-	_, err := g.run(ctx, "branch", "-D", name)
+	_, err := run(ctx, "branch", "-D", name)
 	if err != nil {
 		return err
 	}
-	_, err = g.run(ctx, "push", "origin", "--delete", name)
+	_, err = run(ctx, "push", "origin", "--delete", name)
 	return err
 }
 
@@ -53,11 +51,11 @@ type CreateBranchRequest struct {
 	Description string
 }
 
-func (g *Git) CreateBranch(ctx context.Context, req CreateBranchRequest) error {
+func CreateBranch(ctx context.Context, req CreateBranchRequest) error {
 	if req.Branch == "master" {
 		panic(req.Branch)
 	}
-	_, err := g.run(ctx, "branch", req.Branch, req.SHA)
+	_, err := run(ctx, "branch", req.Branch, req.SHA)
 	if err != nil {
 		return err
 	}
@@ -76,12 +74,12 @@ func (g *Git) CreateBranch(ctx context.Context, req CreateBranchRequest) error {
 
 	args = append(args, "origin", req.Branch+":"+req.Branch)
 
-	_, err = g.run(ctx, args...)
+	_, err = run(ctx, args...)
 	return err
 }
 
-func (g *Git) Commits(ctx context.Context) ([]string, error) {
-	branches, err := g.Branches(ctx)
+func Commits(ctx context.Context) ([]string, error) {
+	branches, err := Branches(ctx)
 	if err != nil {
 		return nil, errors.WithMessage(err, "get commits")
 	}
@@ -103,7 +101,7 @@ func (g *Git) Commits(ctx context.Context) ([]string, error) {
 
 	fromTo := fmt.Sprintf("%s..%s", app.Config.BaseBranch, app.Config.FeatureBranch)
 
-	commits, err := g.run(ctx, "log", `--pretty=format:%h`, fromTo)
+	commits, err := run(ctx, "log", `--pretty=format:%h`, fromTo)
 	if err != nil {
 		return nil, errors.WithMessage(err, "get commits by log")
 	}
@@ -117,20 +115,20 @@ func (g *Git) Commits(ctx context.Context) ([]string, error) {
 	return commits, err
 }
 
-func (g *Git) SwitchBranch(ctx context.Context, branch, commit string) error {
+func SwitchBranch(ctx context.Context, branch, commit string) error {
 	if branch == "master" {
 		panic(branch)
 	}
-	_, err := g.run(ctx, "branch", "-f", branch, commit)
+	_, err := run(ctx, "branch", "-f", branch, commit)
 	if err != nil {
 		return err
 	}
-	_, err = g.run(ctx, "push", "origin", "--force", branch+":"+branch)
+	_, err = run(ctx, "push", "origin", "--force", branch+":"+branch)
 	return err
 }
 
-func (g *Git) FindCommit(ctx context.Context, sha string) (*Commit, error) {
-	output, err := g.run(ctx, "log", "--pretty=format:%s%n%b", sha, "-1")
+func FindCommit(ctx context.Context, sha string) (*Commit, error) {
+	output, err := run(ctx, "log", "--pretty=format:%s%n%b", sha, "-1")
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +149,7 @@ func (g *Git) FindCommit(ctx context.Context, sha string) (*Commit, error) {
 	return commit, nil
 }
 
-func (g *Git) run(ctx context.Context, args ...string) ([]string, error) {
+func run(ctx context.Context, args ...string) ([]string, error) {
 	if !app.Config.Push && args[0] == "push" {
 		return nil, nil
 	}

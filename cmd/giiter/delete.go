@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/waffleboot/giiter/internal/app"
+	"github.com/waffleboot/giiter/internal/git"
 )
 
 var deleteCmd = &cobra.Command{
@@ -23,7 +24,7 @@ var deleteCmd = &cobra.Command{
 }
 
 func deleteReviewBranches(cmd *cobra.Command, args []string) error {
-	branches, err := g.Branches(cmd.Context())
+	branches, err := git.Branches(cmd.Context())
 	if err != nil {
 		return err
 	}
@@ -34,7 +35,7 @@ func deleteReviewBranches(cmd *cobra.Command, args []string) error {
 		if !strings.HasPrefix(branch.Name, prefix) {
 			continue
 		}
-		if err := g.DeleteBranch(cmd.Context(), branch.Name); err != nil {
+		if err := git.DeleteBranch(cmd.Context(), branch.Name); err != nil {
 			return err
 		}
 	}

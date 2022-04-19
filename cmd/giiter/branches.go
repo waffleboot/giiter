@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/waffleboot/giiter/internal/git"
 )
 
 var branchesCmd = &cobra.Command{
@@ -14,7 +15,7 @@ var branchesCmd = &cobra.Command{
 }
 
 func showAllBranches(cmd *cobra.Command, args []string) error {
-	branches, err := g.Branches(cmd.Context())
+	branches, err := git.Branches(cmd.Context())
 	if err != nil {
 		return err
 	}

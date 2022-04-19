@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/waffleboot/giiter/internal/app"
+	"github.com/waffleboot/giiter/internal/git"
 )
 
 var listCmd = &cobra.Command{
@@ -25,7 +26,7 @@ var listCmd = &cobra.Command{
 }
 
 func listFeatureCommits(cmd *cobra.Command, args []string) error {
-	records, err := g.Refresh(cmd.Context())
+	records, err := git.Refresh(cmd.Context())
 	if err != nil {
 		return err
 	}
