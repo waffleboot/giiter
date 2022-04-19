@@ -32,10 +32,10 @@ func deleteReviewBranches(cmd *cobra.Command, args []string) error {
 	prefix := fmt.Sprintf("review/%s/", app.Config.FeatureBranch)
 
 	for _, branch := range branches {
-		if !strings.HasPrefix(branch.Name, prefix) {
+		if !strings.HasPrefix(branch.BranchName, prefix) {
 			continue
 		}
-		if err := git.DeleteBranch(cmd.Context(), branch.Name); err != nil {
+		if err := git.DeleteBranch(cmd.Context(), branch.BranchName); err != nil {
 			return err
 		}
 	}

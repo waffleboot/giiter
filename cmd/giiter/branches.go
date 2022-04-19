@@ -21,7 +21,7 @@ func showAllBranches(cmd *cobra.Command, args []string) error {
 	}
 
 	for i := range branches {
-		fmt.Printf("%s\n", branches[i].Name)
+		fmt.Printf("%s\n", branches[i].BranchName)
 	}
 
 	return nil

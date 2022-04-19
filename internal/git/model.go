@@ -11,8 +11,8 @@ type Commit struct {
 }
 
 type Branch struct {
-	SHA  string // TODO 19 apr 2022 заменить на Commit or CommitSHA
-	Name string
+	SHA        string // TODO 19 apr 2022 заменить на Commit or CommitSHA
+	BranchName string
 }
 
 type Record struct {

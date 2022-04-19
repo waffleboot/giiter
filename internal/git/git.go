@@ -21,8 +21,8 @@ func AllBranches(ctx context.Context) ([]Branch, error) {
 	branches := make([]Branch, 0, len(output))
 	for _, line := range output {
 		branch := Branch{
-			SHA:  line[:7],
-			Name: line[8:],
+			SHA:        line[:7],
+			BranchName: line[8:],
 		}
 		branches = append(branches, branch)
 	}
@@ -85,7 +85,7 @@ func Commits(ctx context.Context) ([]string, error) {
 
 	var baseFound, featFound bool
 	for i := range branches {
-		branch := branches[i].Name
+		branch := branches[i].BranchName
 		baseFound = baseFound || (branch == app.Config.BaseBranch)
 		featFound = featFound || (branch == app.Config.FeatureBranch)
 	}

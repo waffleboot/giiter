@@ -51,13 +51,13 @@ func State(ctx context.Context) ([]Record, error) {
 
 	for i := range branches {
 		branch := branches[i]
-		if !strings.HasPrefix(branch.Name, reviewBranchPrefix) {
+		if !strings.HasPrefix(branch.BranchName, reviewBranchPrefix) {
 			continue
 		}
 
 		reviewSHA := branch.SHA
 
-		branchSuffix := branch.Name[len(reviewBranchPrefix):]
+		branchSuffix := branch.BranchName[len(reviewBranchPrefix):]
 
 		id, err := strconv.Atoi(branchSuffix)
 		if err != nil {
@@ -68,7 +68,7 @@ func State(ctx context.Context) ([]Record, error) {
 			records[index].ID = id
 			records[index].ReviewSHA = reviewSHA
 			records[index].ReviewMsg = records[index].FeatureMsg
-			records[index].ReviewBranch = branch.Name
+			records[index].ReviewBranch = branch.BranchName
 			continue
 		}
 
@@ -103,7 +103,7 @@ func State(ctx context.Context) ([]Record, error) {
 				records[index].ID = id
 				records[index].ReviewSHA = commit.SHA
 				records[index].ReviewMsg = commit.Message
-				records[index].ReviewBranch = branch.Name
+				records[index].ReviewBranch = branch.BranchName
 				continue
 			}
 		}
@@ -113,7 +113,7 @@ func State(ctx context.Context) ([]Record, error) {
 				records[index].ID = id
 				records[index].ReviewSHA = commit.SHA
 				records[index].ReviewMsg = commit.Message
-				records[index].ReviewBranch = branch.Name
+				records[index].ReviewBranch = branch.BranchName
 				continue
 			}
 		}
@@ -124,7 +124,7 @@ func State(ctx context.Context) ([]Record, error) {
 			FeatureMsg:   Message{"", ""},
 			ReviewSHA:    commit.SHA,
 			ReviewMsg:    commit.Message,
-			ReviewBranch: branch.Name,
+			ReviewBranch: branch.BranchName,
 		}
 
 		records = append(records, record)
