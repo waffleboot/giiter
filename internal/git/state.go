@@ -55,7 +55,7 @@ func State(ctx context.Context) ([]Record, error) {
 			continue
 		}
 
-		reviewSHA := branch.SHA
+		reviewSHA := branch.CommitSHA
 
 		branchSuffix := branch.BranchName[len(reviewBranchPrefix):]
 

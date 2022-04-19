@@ -21,7 +21,7 @@ func AllBranches(ctx context.Context) ([]Branch, error) {
 	branches := make([]Branch, 0, len(output))
 	for _, line := range output {
 		branch := Branch{
-			SHA:        line[:7],
+			CommitSHA:  line[:7],
 			BranchName: line[8:],
 		}
 		branches = append(branches, branch)
