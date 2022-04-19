@@ -6,7 +6,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/waffleboot/giiter/internal/app"
 	"github.com/waffleboot/giiter/internal/git"
 )
 
@@ -15,7 +14,7 @@ var deleteCmd = &cobra.Command{
 	Short:   "delete review branches",
 	Aliases: []string{"d"},
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		if app.Config.FeatureBranch == "" {
+		if featureBranch == "" {
 			return errors.New("feature branch is required")
 		}
 		return nil
@@ -29,7 +28,7 @@ func deleteReviewBranches(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	prefix := fmt.Sprintf("review/%s/", app.Config.FeatureBranch)
+	prefix := fmt.Sprintf("review/%s/", featureBranch)
 
 	for _, branch := range branches {
 		if !strings.HasPrefix(branch.BranchName, prefix) {

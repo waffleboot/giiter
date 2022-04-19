@@ -14,12 +14,16 @@ type AppConfig struct {
 	Push             bool
 	Debug            bool
 	Verbose          bool
-	BaseBranch       string
-	FeatureBranch    string
 	Prefix           string
 	RefreshOnSubject bool
 	Log              *os.File
 	LogFile          string
+	FeatureBranchs   []FeatureBranch
+}
+
+type FeatureBranch struct {
+	Name       string
+	BaseBranch string
 }
 
 func LoadConfig(cfgFile string) error {

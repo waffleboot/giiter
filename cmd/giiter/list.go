@@ -5,7 +5,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/waffleboot/giiter/internal/app"
 	"github.com/waffleboot/giiter/internal/git"
 )
 
@@ -14,10 +13,10 @@ var listCmd = &cobra.Command{
 	Short:   "show feature commits",
 	Aliases: []string{"l"},
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		if app.Config.BaseBranch == "" {
+		if baseBranch == "" {
 			return errors.New("base branch is required")
 		}
-		if app.Config.FeatureBranch == "" {
+		if featureBranch == "" {
 			return errors.New("feature branch is required")
 		}
 		return nil
@@ -28,8 +27,8 @@ var listCmd = &cobra.Command{
 func listFeatureCommits(cmd *cobra.Command, args []string) error {
 	records, err := git.Refresh(
 		cmd.Context(),
-		app.Config.BaseBranch,
-		app.Config.FeatureBranch)
+		baseBranch,
+		featureBranch)
 	if err != nil {
 		return err
 	}

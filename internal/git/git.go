@@ -42,27 +42,29 @@ func DeleteBranch(ctx context.Context, name string) error {
 	return err
 }
 
-type CreateBranchRequest struct {
-	SHA         string
-	Branch      string
-	Target      string
-	Title       string
-	Description string
+func CreateBranch(ctx context.Context, branch Branch) error {
+	if branch.BranchName == "master" {
+		panic(branch.BranchName)
+	}
+	_, err := run(ctx, "branch", branch.BranchName, branch.CommitSHA)
+	return err
 }
 
-func CreateBranch(ctx context.Context, req CreateBranchRequest) error {
-	if req.Branch == "master" {
-		panic(req.Branch)
-	}
-	_, err := run(ctx, "branch", req.Branch, req.SHA)
-	if err != nil {
-		return err
-	}
+type MergeRequest struct {
+	Title        string
+	SourceBranch string
+	TargetBranch string
+	Description  string
+}
 
+func CreateMergeRequest(ctx context.Context, req MergeRequest) error {
+	if req.SourceBranch == "master" {
+		panic(req.SourceBranch)
+	}
 	args := []string{
 		"push",
 		"-o", "merge_request.create",
-		"-o", "merge_request.target=" + req.Target,
+		"-o", "merge_request.target=" + req.TargetBranch,
 		"-o", "merge_request.title=" + req.Title,
 		"-o", "merge_request.label=review",
 	}
@@ -71,9 +73,9 @@ func CreateBranch(ctx context.Context, req CreateBranchRequest) error {
 		args = append(args, "-o", "merge_request.description="+req.Description)
 	}
 
-	args = append(args, "origin", req.Branch+":"+req.Branch)
+	args = append(args, "origin", req.SourceBranch+":"+req.SourceBranch)
 
-	_, err = run(ctx, args...)
+	_, err := run(ctx, args...)
 	return err
 }
 

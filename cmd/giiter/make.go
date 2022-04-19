@@ -14,10 +14,10 @@ var makeCmd = &cobra.Command{
 	Short:   "make review branches",
 	Aliases: []string{"m"},
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		if app.Config.BaseBranch == "" {
+		if baseBranch == "" {
 			return errors.New("base branch is required")
 		}
-		if app.Config.FeatureBranch == "" {
+		if featureBranch == "" {
 			return errors.New("feature branch is required")
 		}
 		return nil
@@ -28,8 +28,8 @@ var makeCmd = &cobra.Command{
 func makeReviewBranches(cmd *cobra.Command, args []string) error {
 	records, err := git.Refresh(
 		cmd.Context(),
-		app.Config.BaseBranch,
-		app.Config.FeatureBranch)
+		baseBranch,
+		featureBranch)
 	if err != nil {
 		return err
 	}
@@ -40,12 +40,12 @@ func makeReviewBranches(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		baseBranch := app.Config.BaseBranch
+		prevBranch := baseBranch
 		if i > 0 {
-			baseBranch = records[i-1].ReviewBranch
+			prevBranch = records[i-1].ReviewBranch
 		}
 
-		newBranch := fmt.Sprintf("review/%s/%d", app.Config.FeatureBranch, records[i].ID)
+		newBranch := fmt.Sprintf("review/%s/%d", featureBranch, records[i].ID)
 
 		title := "Draft: "
 		if app.Config.Prefix != "" {
@@ -55,12 +55,20 @@ func makeReviewBranches(cmd *cobra.Command, args []string) error {
 
 		if err := git.CreateBranch(
 			cmd.Context(),
-			git.CreateBranchRequest{
-				SHA:         records[i].FeatureSHA,
-				Branch:      newBranch,
-				Target:      baseBranch,
-				Title:       title,
-				Description: records[i].FeatureMsg.Description,
+			git.Branch{
+				CommitSHA:  records[i].FeatureSHA,
+				BranchName: newBranch,
+			}); err != nil {
+			return err
+		}
+
+		if err := git.CreateMergeRequest(
+			cmd.Context(),
+			git.MergeRequest{
+				Title:        title,
+				SourceBranch: newBranch,
+				TargetBranch: prevBranch,
+				Description:  records[i].FeatureMsg.Description,
 			}); err != nil {
 			return err
 		}

@@ -12,7 +12,11 @@ import (
 	"github.com/waffleboot/giiter/internal/app"
 )
 
-var cfgFile string
+var (
+	cfgFile       string
+	baseBranch    string
+	featureBranch string
+)
 
 func main() {
 	if err := run(); err != nil {
@@ -43,18 +47,18 @@ func init() {
 	rootCmd.AddCommand(assignCmd)
 	rootCmd.AddCommand(branchesCmd)
 
-	listCmd.Flags().StringVarP(&app.Config.BaseBranch, "base", "b", "", "base branch")
-	listCmd.Flags().StringVarP(&app.Config.FeatureBranch, "feature", "f", "", "feature branch")
+	listCmd.Flags().StringVarP(&baseBranch, "base", "b", "", "base branch")
+	listCmd.Flags().StringVarP(&featureBranch, "feature", "f", "", "feature branch")
 	listCmd.Flags().BoolVar(&app.Config.RefreshOnSubject, "refresh-on-subj", false, "refresh using by subject")
 
-	makeCmd.Flags().StringVarP(&app.Config.BaseBranch, "base", "b", "", "base branch")
-	makeCmd.Flags().StringVarP(&app.Config.FeatureBranch, "feature", "f", "", "feature branch")
+	makeCmd.Flags().StringVarP(&baseBranch, "base", "b", "", "base branch")
+	makeCmd.Flags().StringVarP(&featureBranch, "feature", "f", "", "feature branch")
 	makeCmd.Flags().StringVar(&app.Config.Prefix, "prefix", "", "merge review subj prefix")
 
-	deleteCmd.Flags().StringVarP(&app.Config.FeatureBranch, "feature", "f", "", "feature branch")
+	deleteCmd.Flags().StringVarP(&featureBranch, "feature", "f", "", "feature branch")
 
-	assignCmd.Flags().StringVarP(&app.Config.BaseBranch, "base", "b", "", "base branch")
-	assignCmd.Flags().StringVarP(&app.Config.FeatureBranch, "feature", "f", "", "feature branch")
+	assignCmd.Flags().StringVarP(&baseBranch, "base", "b", "", "base branch")
+	assignCmd.Flags().StringVarP(&featureBranch, "feature", "f", "", "feature branch")
 }
 
 func initConfig() {
