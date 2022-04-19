@@ -77,7 +77,7 @@ func CreateBranch(ctx context.Context, req CreateBranchRequest) error {
 	return err
 }
 
-func Commits(ctx context.Context, baseBranch string) ([]string, error) {
+func Commits(ctx context.Context, baseBranch, featureBranch string) ([]string, error) {
 	branches, err := AllBranches(ctx)
 	if err != nil {
 		return nil, errors.WithMessage(err, "get commits")
@@ -87,7 +87,7 @@ func Commits(ctx context.Context, baseBranch string) ([]string, error) {
 	for i := range branches {
 		branch := branches[i].BranchName
 		baseFound = baseFound || (branch == baseBranch)
-		featFound = featFound || (branch == app.Config.FeatureBranch)
+		featFound = featFound || (branch == featureBranch)
 	}
 
 	if !baseFound {
@@ -95,10 +95,10 @@ func Commits(ctx context.Context, baseBranch string) ([]string, error) {
 	}
 
 	if !featFound {
-		return nil, errors.Errorf("branch '%s' not found", app.Config.FeatureBranch)
+		return nil, errors.Errorf("branch '%s' not found", featureBranch)
 	}
 
-	fromTo := fmt.Sprintf("%s..%s", baseBranch, app.Config.FeatureBranch)
+	fromTo := fmt.Sprintf("%s..%s", baseBranch, featureBranch)
 
 	commits, err := run(ctx, "log", `--pretty=format:%h`, fromTo)
 	if err != nil {

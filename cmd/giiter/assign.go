@@ -42,7 +42,10 @@ func assign(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	records, err := git.State(cmd.Context(), app.Config.BaseBranch)
+	records, err := git.State(
+		cmd.Context(),
+		app.Config.BaseBranch,
+		app.Config.FeatureBranch)
 	if err != nil {
 		return err
 	}

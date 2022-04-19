@@ -26,7 +26,10 @@ var listCmd = &cobra.Command{
 }
 
 func listFeatureCommits(cmd *cobra.Command, args []string) error {
-	records, err := git.Refresh(cmd.Context(), app.Config.BaseBranch)
+	records, err := git.Refresh(
+		cmd.Context(),
+		app.Config.BaseBranch,
+		app.Config.FeatureBranch)
 	if err != nil {
 		return err
 	}

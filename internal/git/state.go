@@ -10,8 +10,8 @@ import (
 	"github.com/waffleboot/giiter/internal/app"
 )
 
-func State(ctx context.Context, baseBranch string) ([]Record, error) {
-	commits, err := Commits(ctx, baseBranch)
+func State(ctx context.Context, baseBranch, featureBranch string) ([]Record, error) {
+	commits, err := Commits(ctx, baseBranch, featureBranch)
 	if err != nil {
 		return nil, errors.WithMessage(err, "get state")
 	}
@@ -148,8 +148,8 @@ func State(ctx context.Context, baseBranch string) ([]Record, error) {
 	return records, nil
 }
 
-func Refresh(ctx context.Context, baseBranch string) ([]Record, error) {
-	records, err := State(ctx, baseBranch)
+func Refresh(ctx context.Context, baseBranch, featureBranch string) ([]Record, error) {
+	records, err := State(ctx, baseBranch, featureBranch)
 	if err != nil {
 		return nil, err
 	}
