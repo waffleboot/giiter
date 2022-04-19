@@ -45,7 +45,7 @@ func State(ctx context.Context, baseBranch, featureBranch string) ([]Record, err
 		return nil, err
 	}
 
-	reviewBranchPrefix := fmt.Sprintf("review/%s/", app.Config.FeatureBranch)
+	reviewBranchPrefix := fmt.Sprintf("review/%s/", featureBranch)
 
 	var featureDiffHashToIndex map[string]int
 
