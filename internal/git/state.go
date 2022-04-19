@@ -6,13 +6,15 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/pkg/errors"
+	"github.com/waffleboot/giiter/internal/app"
 	"github.com/waffleboot/giiter/internal/config"
 )
 
-func (g *Git) State(ctx context.Context, base, feat string) ([]Record, error) {
-	commits, err := g.Commits(ctx, base, feat)
+func (g *Git) State(ctx context.Context) ([]Record, error) {
+	commits, err := g.Commits(ctx)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithMessage(err, "get state")
 	}
 
 	records := make([]Record, 0, len(commits))
@@ -44,7 +46,7 @@ func (g *Git) State(ctx context.Context, base, feat string) ([]Record, error) {
 		return nil, err
 	}
 
-	reviewBranchPrefix := fmt.Sprintf("review/%s/", feat)
+	reviewBranchPrefix := fmt.Sprintf("review/%s/", app.Config.FeatureBranch)
 
 	var featureDiffHashToIndex map[string]int
 
@@ -147,8 +149,8 @@ func (g *Git) State(ctx context.Context, base, feat string) ([]Record, error) {
 	return records, nil
 }
 
-func (g *Git) Refresh(ctx context.Context, base, feat string) ([]Record, error) {
-	records, err := g.State(ctx, base, feat)
+func (g *Git) Refresh(ctx context.Context) ([]Record, error) {
+	records, err := g.State(ctx)
 	if err != nil {
 		return nil, err
 	}

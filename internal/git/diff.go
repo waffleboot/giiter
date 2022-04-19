@@ -5,6 +5,8 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"strings"
+
+	"github.com/waffleboot/giiter/internal/app"
 )
 
 type nullHash struct {
@@ -53,7 +55,7 @@ func (g *Git) DiffHash(ctx context.Context, sha string) (nullHash, error) {
 			hash.Write([]byte(line))
 		}
 
-		if g.Debug {
+		if app.Config.Debug {
 			fmt.Printf("--- diff %s %s\n", sha, file)
 			for _, line := range diff {
 				fmt.Println(line)
@@ -66,7 +68,7 @@ func (g *Git) DiffHash(ctx context.Context, sha string) (nullHash, error) {
 
 	strSum := fmt.Sprintf("%x", sum)
 
-	if g.Debug {
+	if app.Config.Debug {
 		fmt.Printf("Commit: %s DiffHash: %s\n", sha, strSum)
 	}
 

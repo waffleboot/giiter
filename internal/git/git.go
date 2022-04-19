@@ -8,20 +8,17 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/pkg/errors"
+	"github.com/waffleboot/giiter/internal/app"
 	"github.com/waffleboot/giiter/internal/config"
 )
 
-type Git struct {
-	Push    bool
-	Repo    string
-	Debug   bool
-	Verbose bool
-}
+type Git struct{}
 
 func (g *Git) Branches(ctx context.Context) ([]Branch, error) {
 	output, err := g.run(ctx, "branch", "--format=%(objectname:short) %(refname:short)")
 	if err != nil {
-		return nil, err
+		return nil, errors.WithMessage(err, "get all branches")
 	}
 
 	branches := make([]Branch, 0, len(output))
@@ -83,32 +80,32 @@ func (g *Git) CreateBranch(ctx context.Context, req CreateBranchRequest) error {
 	return err
 }
 
-func (g *Git) Commits(ctx context.Context, base, feat string) ([]string, error) {
+func (g *Git) Commits(ctx context.Context) ([]string, error) {
 	branches, err := g.Branches(ctx)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithMessage(err, "get commits")
 	}
 
 	var baseFound, featFound bool
 	for i := range branches {
 		branch := branches[i].Name
-		baseFound = baseFound || (branch == base)
-		featFound = featFound || (branch == feat)
+		baseFound = baseFound || (branch == app.Config.BaseBranch)
+		featFound = featFound || (branch == app.Config.FeatureBranch)
 	}
 
 	if !baseFound {
-		return nil, fmt.Errorf("branch '%s' not found", base)
+		return nil, errors.Errorf("branch '%s' not found", app.Config.BaseBranch)
 	}
 
 	if !featFound {
-		return nil, fmt.Errorf("branch '%s' not found", feat)
+		return nil, errors.Errorf("branch '%s' not found", app.Config.FeatureBranch)
 	}
 
-	fromTo := fmt.Sprintf("%s..%s", base, feat)
+	fromTo := fmt.Sprintf("%s..%s", app.Config.BaseBranch, app.Config.FeatureBranch)
 
 	commits, err := g.run(ctx, "log", `--pretty=format:%h`, fromTo)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithMessage(err, "get commits by log")
 	}
 
 	// reverse order
@@ -155,10 +152,10 @@ func (g *Git) FindCommit(ctx context.Context, sha string) (*Commit, error) {
 }
 
 func (g *Git) run(ctx context.Context, args ...string) ([]string, error) {
-	if !g.Push && args[0] == "push" {
+	if !app.Config.Push && args[0] == "push" {
 		return nil, nil
 	}
-	if g.Verbose {
+	if app.Config.Verbose {
 		fmt.Print("git")
 		for i := range args {
 			fmt.Printf(" %s", args[i])
@@ -177,7 +174,7 @@ func (g *Git) run(ctx context.Context, args ...string) ([]string, error) {
 
 	cmd := exec.CommandContext(ctx, "git", args...)
 
-	cmd.Dir = g.Repo
+	cmd.Dir = app.Config.Repo
 
 	stdout, err := cmd.Output()
 	if err != nil {
