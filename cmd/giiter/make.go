@@ -26,7 +26,7 @@ var makeCmd = &cobra.Command{
 }
 
 func makeReviewBranches(cmd *cobra.Command, args []string) error {
-	records, err := git.Refresh(cmd.Context())
+	records, err := git.Refresh(cmd.Context(), app.Config.BaseBranch)
 	if err != nil {
 		return err
 	}
