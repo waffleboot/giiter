@@ -12,7 +12,7 @@ import (
 	"github.com/waffleboot/giiter/internal/app"
 )
 
-func Branches(ctx context.Context) ([]Branch, error) {
+func AllBranches(ctx context.Context) ([]Branch, error) {
 	output, err := run(ctx, "branch", "--format=%(objectname:short) %(refname:short)")
 	if err != nil {
 		return nil, errors.WithMessage(err, "get all branches")
@@ -78,7 +78,7 @@ func CreateBranch(ctx context.Context, req CreateBranchRequest) error {
 }
 
 func Commits(ctx context.Context) ([]string, error) {
-	branches, err := Branches(ctx)
+	branches, err := AllBranches(ctx)
 	if err != nil {
 		return nil, errors.WithMessage(err, "get commits")
 	}

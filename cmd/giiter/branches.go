@@ -11,11 +11,11 @@ var branchesCmd = &cobra.Command{
 	Use:     "branches",
 	Short:   "show all branches",
 	Aliases: []string{"b"},
-	RunE:   showAllBranches,
+	RunE:    showAllBranches,
 }
 
 func showAllBranches(cmd *cobra.Command, args []string) error {
-	branches, err := git.Branches(cmd.Context())
+	branches, err := git.AllBranches(cmd.Context())
 	if err != nil {
 		return err
 	}

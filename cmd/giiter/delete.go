@@ -24,7 +24,7 @@ var deleteCmd = &cobra.Command{
 }
 
 func deleteReviewBranches(cmd *cobra.Command, args []string) error {
-	branches, err := git.Branches(cmd.Context())
+	branches, err := git.AllBranches(cmd.Context())
 	if err != nil {
 		return err
 	}

@@ -40,7 +40,7 @@ func State(ctx context.Context) ([]Record, error) {
 		featureSubjIndex[commit.Message.Subject] = i
 	}
 
-	branches, err := Branches(ctx)
+	branches, err := AllBranches(ctx)
 	if err != nil {
 		return nil, err
 	}
