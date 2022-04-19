@@ -21,15 +21,6 @@ func main() {
 	}
 }
 
-var rootCmd = &cobra.Command{
-	PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
-		if app.Config.Log != nil {
-			app.Config.Log.Close()
-		}
-		return nil
-	},
-}
-
 func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
