@@ -10,13 +10,16 @@ import (
 var Config AppConfig
 
 type AppConfig struct {
-	Repo          string
-	Push          bool
-	Debug         bool
-	Verbose       bool
-	BaseBranch    string
-	FeatureBranch string
-	Prefix        string
+	Repo             string
+	Push             bool
+	Debug            bool
+	Verbose          bool
+	BaseBranch       string
+	FeatureBranch    string
+	Prefix           string
+	RefreshOnSubject bool
+	Log              *os.File
+	LogFile          string
 }
 
 func LoadConfig(cfgFile string) error {
@@ -42,6 +45,14 @@ func LoadConfig(cfgFile string) error {
 
 	if err := viper.UnmarshalExact(&Config); err != nil {
 		return errors.WithMessage(err, "parse config file")
+	}
+
+	if Config.LogFile != "" {
+		logFile, err := os.OpenFile(Config.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o666)
+		if err != nil {
+			return err
+		}
+		Config.Log = logFile
 	}
 
 	return nil

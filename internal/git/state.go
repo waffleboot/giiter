@@ -8,7 +8,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/waffleboot/giiter/internal/app"
-	"github.com/waffleboot/giiter/internal/config"
 )
 
 func State(ctx context.Context) ([]Record, error) {
@@ -109,7 +108,7 @@ func State(ctx context.Context) ([]Record, error) {
 			}
 		}
 
-		if config.Global.RefreshOnSubject {
+		if app.Config.RefreshOnSubject {
 			if index, ok := featureSubjIndex[commit.Message.Subject]; ok {
 				records[index].ID = id
 				records[index].ReviewSHA = commit.SHA

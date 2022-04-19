@@ -8,8 +8,8 @@ import (
 	"syscall"
 
 	"github.com/spf13/cobra"
+
 	"github.com/waffleboot/giiter/internal/app"
-	"github.com/waffleboot/giiter/internal/config"
 )
 
 var cfgFile string
@@ -21,19 +21,11 @@ func main() {
 	}
 }
 
-var (
-	refreshOnSubject bool
-)
-
 var rootCmd = &cobra.Command{
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		if err := config.LoadConfig(); err != nil {
-			return err
-		}
-		return nil
-	},
 	PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
-		config.Close()
+		if app.Config.Log != nil {
+			app.Config.Log.Close()
+		}
 		return nil
 	},
 }
@@ -62,7 +54,7 @@ func init() {
 
 	listCmd.Flags().StringVarP(&app.Config.BaseBranch, "base", "b", "", "base branch")
 	listCmd.Flags().StringVarP(&app.Config.FeatureBranch, "feature", "f", "", "feature branch")
-	listCmd.Flags().BoolVar(&refreshOnSubject, "refresh-on-subj", false, "refresh using by subject")
+	listCmd.Flags().BoolVar(&app.Config.RefreshOnSubject, "refresh-on-subj", false, "refresh using by subject")
 
 	makeCmd.Flags().StringVarP(&app.Config.BaseBranch, "base", "b", "", "base branch")
 	makeCmd.Flags().StringVarP(&app.Config.FeatureBranch, "feature", "f", "", "feature branch")

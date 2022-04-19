@@ -10,7 +10,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/waffleboot/giiter/internal/app"
-	"github.com/waffleboot/giiter/internal/config"
 )
 
 func Branches(ctx context.Context) ([]Branch, error) {
@@ -161,13 +160,13 @@ func run(ctx context.Context, args ...string) ([]string, error) {
 		fmt.Println()
 	}
 
-	if config.Global.Log != nil {
-		fmt.Fprint(config.Global.Log, "git ")
+	if app.Config.Log != nil {
+		fmt.Fprint(app.Config.Log, "git ")
 		for i := range args {
-			fmt.Fprint(config.Global.Log, args[i])
-			fmt.Fprint(config.Global.Log, " ")
+			fmt.Fprint(app.Config.Log, args[i])
+			fmt.Fprint(app.Config.Log, " ")
 		}
-		fmt.Fprintln(config.Global.Log)
+		fmt.Fprintln(app.Config.Log)
 	}
 
 	cmd := exec.CommandContext(ctx, "git", args...)
