@@ -47,17 +47,17 @@ func State(ctx context.Context, baseBranch, featureBranch string) ([]Record, err
 
 	reviewBranchPrefix := fmt.Sprintf("review/%s/", featureBranch)
 
-	var featureDiffHashToIndex map[string]int
+	var featureDiffToIndex map[string]int
 
 	for i := range branches {
-		branch := branches[i]
-		if !strings.HasPrefix(branch.BranchName, reviewBranchPrefix) {
+		reviewBranch := branches[i]
+		if !strings.HasPrefix(reviewBranch.BranchName, reviewBranchPrefix) {
 			continue
 		}
 
-		reviewSHA := branch.CommitSHA
+		reviewSHA := reviewBranch.CommitSHA
 
-		branchSuffix := branch.BranchName[len(reviewBranchPrefix):]
+		branchSuffix := reviewBranch.BranchName[len(reviewBranchPrefix):]
 
 		id, err := strconv.Atoi(branchSuffix)
 		if err != nil {
@@ -68,13 +68,13 @@ func State(ctx context.Context, baseBranch, featureBranch string) ([]Record, err
 			records[index].ID = id
 			records[index].ReviewSHA = reviewSHA
 			records[index].ReviewMsg = records[index].FeatureMsg
-			records[index].ReviewBranch = branch.BranchName
+			records[index].ReviewBranch = reviewBranch.BranchName
 			continue
 		}
 
-		if featureDiffHashToIndex == nil {
+		if featureDiffToIndex == nil {
 
-			featureDiffHashToIndex = make(map[string]int)
+			featureDiffToIndex = make(map[string]int)
 
 			for i := range records {
 				diffHash, err := DiffHash(ctx, records[i].FeatureSHA)
@@ -82,15 +82,10 @@ func State(ctx context.Context, baseBranch, featureBranch string) ([]Record, err
 					return nil, err
 				}
 				if diffHash.valid {
-					featureDiffHashToIndex[diffHash.hash] = i
+					featureDiffToIndex[diffHash.hash] = i
 				}
 			}
 
-		}
-
-		diffHash, err := DiffHash(ctx, reviewSHA)
-		if err != nil {
-			return nil, err
 		}
 
 		commit, err := FindCommit(ctx, reviewSHA)
@@ -98,22 +93,27 @@ func State(ctx context.Context, baseBranch, featureBranch string) ([]Record, err
 			return nil, err
 		}
 
+		diffHash, err := DiffHash(ctx, reviewSHA)
+		if err != nil {
+			return nil, err
+		}
+
 		if diffHash.valid {
-			if index, ok := featureDiffHashToIndex[diffHash.hash]; ok {
+			if index, ok := featureDiffToIndex[diffHash.hash]; ok {
 				records[index].ID = id
 				records[index].ReviewSHA = commit.SHA
 				records[index].ReviewMsg = commit.Message
-				records[index].ReviewBranch = branch.BranchName
+				records[index].ReviewBranch = reviewBranch.BranchName
 				continue
 			}
 		}
 
-		if app.Config.RefreshOnSubject {
+		if app.Config.UseSubjectToMatch {
 			if index, ok := featureSubjIndex[commit.Message.Subject]; ok {
 				records[index].ID = id
 				records[index].ReviewSHA = commit.SHA
 				records[index].ReviewMsg = commit.Message
-				records[index].ReviewBranch = branch.BranchName
+				records[index].ReviewBranch = reviewBranch.BranchName
 				continue
 			}
 		}
@@ -124,7 +124,7 @@ func State(ctx context.Context, baseBranch, featureBranch string) ([]Record, err
 			FeatureMsg:   Message{"", ""},
 			ReviewSHA:    commit.SHA,
 			ReviewMsg:    commit.Message,
-			ReviewBranch: branch.BranchName,
+			ReviewBranch: reviewBranch.BranchName,
 		}
 
 		records = append(records, record)

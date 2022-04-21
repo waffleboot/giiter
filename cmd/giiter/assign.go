@@ -12,16 +12,7 @@ var assignCmd = &cobra.Command{
 	Use:     "assign",
 	Short:   "reassign commit to review branch",
 	Aliases: []string{"a"},
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		if baseBranch == "" {
-			return errors.New("base branch is required")
-		}
-		if featureBranch == "" {
-			return errors.New("feature branch is required")
-		}
-		return nil
-	},
-	RunE: assign,
+	RunE:    assign,
 }
 
 func assign(cmd *cobra.Command, args []string) error {

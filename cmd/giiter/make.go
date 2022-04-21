@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/waffleboot/giiter/internal/app"
 	"github.com/waffleboot/giiter/internal/git"
@@ -13,16 +12,7 @@ var makeCmd = &cobra.Command{
 	Use:     "make",
 	Short:   "make review branches",
 	Aliases: []string{"m"},
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		if baseBranch == "" {
-			return errors.New("base branch is required")
-		}
-		if featureBranch == "" {
-			return errors.New("feature branch is required")
-		}
-		return nil
-	},
-	RunE: makeReviewBranches,
+	RunE:    makeReviewBranches,
 }
 
 func makeReviewBranches(cmd *cobra.Command, args []string) error {
@@ -48,8 +38,8 @@ func makeReviewBranches(cmd *cobra.Command, args []string) error {
 		newBranch := fmt.Sprintf("review/%s/%d", featureBranch, records[i].ID)
 
 		title := "Draft: "
-		if app.Config.Prefix != "" {
-			title += app.Config.Prefix + ": "
+		if app.Config.MergeRequestPrefix != "" {
+			title += app.Config.MergeRequestPrefix + ": "
 		}
 		title += records[i].FeatureMsg.Subject
 

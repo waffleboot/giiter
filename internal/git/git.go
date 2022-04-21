@@ -100,9 +100,9 @@ func Commits(ctx context.Context, baseBranch, featureBranch string) ([]string, e
 		return nil, errors.Errorf("branch '%s' not found", featureBranch)
 	}
 
-	fromTo := fmt.Sprintf("%s..%s", baseBranch, featureBranch)
+	r := fmt.Sprintf("%s..%s", baseBranch, featureBranch)
 
-	commits, err := run(ctx, "log", `--pretty=format:%h`, fromTo)
+	commits, err := run(ctx, "log", `--pretty=format:%h`, r)
 	if err != nil {
 		return nil, errors.WithMessage(err, "get commits by log")
 	}
@@ -151,7 +151,7 @@ func FindCommit(ctx context.Context, sha string) (*Commit, error) {
 }
 
 func run(ctx context.Context, args ...string) ([]string, error) {
-	if !app.Config.Push && args[0] == "push" {
+	if !app.Config.EnableGitPush && args[0] == "push" {
 		return nil, nil
 	}
 	if app.Config.Verbose {
@@ -162,18 +162,18 @@ func run(ctx context.Context, args ...string) ([]string, error) {
 		fmt.Println()
 	}
 
-	if app.Config.Log != nil {
-		fmt.Fprint(app.Config.Log, "git ")
-		for i := range args {
-			fmt.Fprint(app.Config.Log, args[i])
-			fmt.Fprint(app.Config.Log, " ")
-		}
-		fmt.Fprintln(app.Config.Log)
-	}
+	// if app.Config.Log != nil {
+	// 	fmt.Fprint(app.Config.Log, "git ")
+	// 	for i := range args {
+	// 		fmt.Fprint(app.Config.Log, args[i])
+	// 		fmt.Fprint(app.Config.Log, " ")
+	// 	}
+	// 	fmt.Fprintln(app.Config.Log)
+	// }
 
 	cmd := exec.CommandContext(ctx, "git", args...)
 
-	cmd.Dir = app.Config.Repo
+	// cmd.Dir = app.Config.Repo
 
 	stdout, err := cmd.Output()
 	if err != nil {
