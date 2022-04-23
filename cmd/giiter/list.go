@@ -17,7 +17,6 @@ var listCmd = &cobra.Command{
 
 const (
 	Yellow = "\033[33m"
-	White  = "\033[97m"
 	Green  = "\033[32m"
 	Reset  = "\033[0m"
 	Red    = "\033[31m"
