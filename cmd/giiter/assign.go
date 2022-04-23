@@ -17,7 +17,7 @@ var assignCmd = &cobra.Command{
 
 func assign(cmd *cobra.Command, args []string) error {
 	if len(args) < 2 {
-		return errors.New("need branch and commit")
+		return errors.New("need new commit and old review branch position numbers")
 	}
 
 	sha, branch := args[0], args[1]
