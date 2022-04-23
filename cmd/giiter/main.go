@@ -37,6 +37,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.Use = "giiter"
+	rootCmd.SilenceUsage = true
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", ".giiter.yml", "config file")
 	rootCmd.PersistentFlags().BoolVarP(&app.Config.Debug, "debug", "d", false, "debug output")
