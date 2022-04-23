@@ -41,14 +41,14 @@ func assign(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	branch = records[branchIndex-1].ReviewBranch
+	branch = records[branchIndex-1].ReviewBranch.BranchName
 	sha = records[shaIndex-1].FeatureSHA
 
 	reviewIndex := -1
 	commitIndex := -1
 
 	for i := range records {
-		if records[i].ReviewBranch == branch {
+		if records[i].ReviewBranch.BranchName == branch {
 			reviewIndex = i
 		}
 

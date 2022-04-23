@@ -12,15 +12,15 @@ func Refresh(ctx context.Context, baseBranch, featureBranch string) ([]Record, e
 
 	for i := range records {
 		record := records[i]
-		if record.IsOldCommit() || record.IsNewCommit() || record.FeatureSHA == record.ReviewSHA {
+		if record.IsOldCommit() || record.IsNewCommit() || record.MatchedCommit() {
 			continue
 		}
 
-		if errSwitch := SwitchBranch(ctx, record.ReviewBranch, record.FeatureSHA); errSwitch != nil {
+		if errSwitch := SwitchBranch(ctx, record.ReviewBranch.BranchName, record.FeatureSHA); errSwitch != nil {
 			return nil, errSwitch
 		}
 
-		records[i].ReviewSHA = record.FeatureSHA
+		records[i].ReviewBranch.CommitSHA = record.FeatureSHA
 		records[i].ReviewMsg = record.FeatureMsg
 	}
 
@@ -45,7 +45,7 @@ func Refresh(ctx context.Context, baseBranch, featureBranch string) ([]Record, e
 			continue
 		}
 
-		if err := DeleteBranch(ctx, records[i].ReviewBranch); err != nil {
+		if err := DeleteBranch(ctx, records[i].ReviewBranch.BranchName); err != nil {
 			return nil, err
 		}
 	}

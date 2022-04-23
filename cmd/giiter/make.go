@@ -26,16 +26,16 @@ func makeReviewBranches(cmd *cobra.Command, args []string) error {
 	}
 
 	for i := range records {
-		if records[i].ReviewSHA != "" {
+		if records[i].HasReview() {
 			continue
 		}
 
 		prevBranch := _baseBranch
 		if i > 0 {
-			prevBranch = records[i-1].ReviewBranch
+			prevBranch = records[i-1].ReviewBranch.BranchName
 		}
 
-		newBranch := fmt.Sprintf("review/%s/%d", _featureBranch, records[i].ID)
+		newBranch := fmt.Sprintf("review/%s/%d", _featureBranch, records[i].ReviewBranch.ID)
 
 		title := "Draft: "
 		if app.Config.MergeRequestPrefix != "" {
@@ -64,7 +64,7 @@ func makeReviewBranches(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		records[i].ReviewBranch = newBranch
+		records[i].ReviewBranch.BranchName = newBranch
 	}
 
 	return listFeatureCommits(cmd, args)
