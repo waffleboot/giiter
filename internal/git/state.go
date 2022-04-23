@@ -10,6 +10,37 @@ import (
 	"github.com/waffleboot/giiter/internal/app"
 )
 
+func findReviewBranches(ctx context.Context, featureBranch string) ([]ReviewBranch, error) {
+	branches, err := AllBranches(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	branchPrefix := fmt.Sprintf("review/%s/", featureBranch)
+
+	reviewBranches := make([]ReviewBranch, 0, 16)
+
+	for _, branch := range branches {
+		if !strings.HasPrefix(branch.BranchName, branchPrefix) {
+			continue
+		}
+
+		branchSuffix := branch.BranchName[len(branchPrefix):]
+
+		id, err := strconv.Atoi(branchSuffix)
+		if err != nil {
+			return nil, err
+		}
+
+		reviewBranches = append(reviewBranches, ReviewBranch{
+			ID:     id,
+			Branch: branch,
+		})
+	}
+
+	return reviewBranches, nil
+}
+
 func State(ctx context.Context, baseBranch, featureBranch string) ([]Record, error) {
 	commits, err := Commits(ctx, baseBranch, featureBranch)
 	if err != nil {
@@ -39,35 +70,22 @@ func State(ctx context.Context, baseBranch, featureBranch string) ([]Record, err
 		featureSubjIndex[commit.Message.Subject] = i
 	}
 
-	branches, err := AllBranches(ctx)
+	branches, err := findReviewBranches(ctx, featureBranch)
 	if err != nil {
 		return nil, err
 	}
 
-	reviewBranchPrefix := fmt.Sprintf("review/%s/", featureBranch)
-
 	var featureDiffToIndex map[string]int
 
 	for i := range branches {
-		reviewBranch := branches[i]
-		if !strings.HasPrefix(reviewBranch.BranchName, reviewBranchPrefix) {
-			continue
-		}
+		branch := branches[i]
 
-		reviewSHA := reviewBranch.CommitSHA
-
-		branchSuffix := reviewBranch.BranchName[len(reviewBranchPrefix):]
-
-		id, err := strconv.Atoi(branchSuffix)
-		if err != nil {
-			return nil, err
-		}
-
+		reviewSHA := branch.CommitSHA
 		if index, ok := featureSHAIndex[reviewSHA]; ok {
-			records[index].ID = id
+			records[index].ID = branch.ID
 			records[index].ReviewSHA = reviewSHA
 			records[index].ReviewMsg = records[index].FeatureMsg
-			records[index].ReviewBranch = reviewBranch.BranchName
+			records[index].ReviewBranch = branch.BranchName
 
 			continue
 		}
@@ -99,10 +117,10 @@ func State(ctx context.Context, baseBranch, featureBranch string) ([]Record, err
 
 		if diffHash.valid {
 			if index, ok := featureDiffToIndex[diffHash.hash]; ok {
-				records[index].ID = id
+				records[index].ID = branch.ID
 				records[index].ReviewSHA = commit.SHA
 				records[index].ReviewMsg = commit.Message
-				records[index].ReviewBranch = reviewBranch.BranchName
+				records[index].ReviewBranch = branch.BranchName
 
 				continue
 			}
@@ -110,22 +128,22 @@ func State(ctx context.Context, baseBranch, featureBranch string) ([]Record, err
 
 		if app.Config.UseSubjectToMatch {
 			if index, ok := featureSubjIndex[commit.Message.Subject]; ok {
-				records[index].ID = id
+				records[index].ID = branch.ID
 				records[index].ReviewSHA = commit.SHA
 				records[index].ReviewMsg = commit.Message
-				records[index].ReviewBranch = reviewBranch.BranchName
+				records[index].ReviewBranch = branch.BranchName
 
 				continue
 			}
 		}
 
 		record := Record{
-			ID:           id,
+			ID:           branch.ID,
 			FeatureSHA:   "",
 			FeatureMsg:   Message{"", ""},
 			ReviewSHA:    commit.SHA,
 			ReviewMsg:    commit.Message,
-			ReviewBranch: reviewBranch.BranchName,
+			ReviewBranch: branch.BranchName,
 		}
 
 		records = append(records, record)

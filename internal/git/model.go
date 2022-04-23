@@ -15,6 +15,11 @@ type Branch struct {
 	BranchName string
 }
 
+type ReviewBranch struct {
+	ID int
+	Branch
+}
+
 type Record struct {
 	ID           int
 	FeatureSHA   string
