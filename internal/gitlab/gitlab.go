@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-const baseUrl = "https://gitlab.com/api/v4/projects/34829333/merge_requests"
+const baseURL = "https://gitlab.com/api/v4/projects/34829333/merge_requests"
 
 type MergeRequest struct {
 	Title        string
@@ -26,7 +26,7 @@ func CreateMergeRequest(ctx context.Context, token string, mr MergeRequest) erro
 		"target_branch": {mr.TargetBranch},
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, baseUrl, strings.NewReader(data.Encode()))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, baseURL, strings.NewReader(data.Encode()))
 	if err != nil {
 		return err
 	}
