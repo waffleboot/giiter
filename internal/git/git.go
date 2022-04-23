@@ -186,7 +186,7 @@ func run(ctx context.Context, args ...string) ([]string, error) {
 
 	// cmd.Dir = app.Config.Repo
 
-	stdout, err := cmd.Output()
+	stdout, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil, err
 	}

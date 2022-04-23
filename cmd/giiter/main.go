@@ -36,6 +36,8 @@ func run() error {
 func init() {
 	cobra.OnInitialize(initConfig)
 
+	rootCmd.Use = "giiter"
+
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", ".giiter.yml", "config file")
 	rootCmd.PersistentFlags().BoolVarP(&app.Config.Debug, "debug", "d", false, "debug output")
 	rootCmd.PersistentFlags().BoolVarP(&app.Config.Verbose, "verbose", "v", false, "verbose output")
