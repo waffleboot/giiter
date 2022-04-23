@@ -12,7 +12,7 @@ var listCmd = &cobra.Command{
 	Short:   "show feature commits",
 	Aliases: []string{"l"},
 	// PersistentPreRunE не нужен, см. main
-	RunE:    listFeatureCommits,
+	RunE: listFeatureCommits,
 }
 
 const (
