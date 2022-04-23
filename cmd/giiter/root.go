@@ -20,6 +20,7 @@ var rootCmd = &cobra.Command{
 		if err := enc.Encode(app.Config.Persistent); err != nil {
 			return err
 		}
+
 		return nil
 	},
 }

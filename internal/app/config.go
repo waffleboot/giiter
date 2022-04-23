@@ -27,6 +27,7 @@ func LoadConfig(cfgFile string) error {
 	if os.IsNotExist(err) {
 		return nil
 	}
+
 	if err != nil {
 		return err
 	}

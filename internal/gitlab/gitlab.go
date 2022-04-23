@@ -43,6 +43,7 @@ func CreateMergeRequest(ctx context.Context, token string, mr MergeRequest) erro
 
 	if resp.StatusCode != http.StatusCreated {
 		io.Copy(os.Stdout, resp.Body)
+
 		return fmt.Errorf("%d", resp.StatusCode)
 	}
 

@@ -57,6 +57,7 @@ func init() {
 		cmd.Flags().StringVarP(&featureBranch, "feature", "f", "", "feature branch")
 		cmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) (err error) {
 			baseBranch, featureBranch, err = git.FindBaseAndFeatureBranches(cmd.Context(), baseBranch, featureBranch)
+
 			return
 		}
 	}

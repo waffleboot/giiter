@@ -25,7 +25,6 @@ func makeReviewBranches(cmd *cobra.Command, args []string) error {
 	}
 
 	for i := range records {
-
 		if records[i].ReviewSHA != "" {
 			continue
 		}
@@ -41,6 +40,7 @@ func makeReviewBranches(cmd *cobra.Command, args []string) error {
 		if app.Config.MergeRequestPrefix != "" {
 			title += app.Config.MergeRequestPrefix + ": "
 		}
+
 		title += records[i].FeatureMsg.Subject
 
 		if err := git.CreateBranch(
@@ -64,7 +64,6 @@ func makeReviewBranches(cmd *cobra.Command, args []string) error {
 		}
 
 		records[i].ReviewBranch = newBranch
-
 	}
 
 	return listFeatureCommits(cmd, args)

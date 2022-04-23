@@ -26,6 +26,7 @@ func DiffHash(ctx context.Context, sha string) (nullHash, error) {
 
 	for i := range files {
 		file := files[i]
+
 		diff, err := run(ctx, "diff-tree", "--unified=0", sha, "--", file)
 		if err != nil {
 			return nullHash{}, err
@@ -36,12 +37,14 @@ func DiffHash(ctx context.Context, sha string) (nullHash, error) {
 		if strings.HasPrefix(diff[0], "new file") {
 			hash.Write([]byte("new file"))
 			hash.Write([]byte(file))
+
 			continue
 		}
 
 		if strings.HasPrefix(diff[0], "deleted file") {
 			hash.Write([]byte("deleted file"))
 			hash.Write([]byte(file))
+
 			continue
 		}
 
@@ -57,11 +60,11 @@ func DiffHash(ctx context.Context, sha string) (nullHash, error) {
 
 		if app.Config.Debug {
 			fmt.Printf("--- diff %s %s\n", sha, file)
+
 			for _, line := range diff {
 				fmt.Println(line)
 			}
 		}
-
 	}
 
 	sum := hash.Sum(nil)

@@ -50,6 +50,7 @@ func assign(cmd *cobra.Command, args []string) error {
 		if records[i].ReviewBranch == branch {
 			reviewIndex = i
 		}
+
 		if records[i].FeatureSHA == sha {
 			commitIndex = i
 		}

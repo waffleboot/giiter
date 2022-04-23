@@ -48,17 +48,21 @@ func findBaseBranch(baseBranch, featureBranch string) string {
 		if item.BranchName == featureBranch {
 			if baseBranch != "" {
 				app.Config.Persistent.FeatureBranches[i].BaseBranch = baseBranch
+
 				return baseBranch
 			}
+
 			return item.BaseBranch
 		}
 	}
+
 	if baseBranch != "" {
 		app.Config.Persistent.FeatureBranches = append(app.Config.Persistent.FeatureBranches, app.FeatureBranch{
 			BaseBranch: baseBranch,
 			BranchName: featureBranch,
 		})
 	}
+
 	return baseBranch
 }
 

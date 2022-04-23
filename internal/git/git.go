@@ -19,6 +19,7 @@ func AllBranches(ctx context.Context) ([]Branch, error) {
 	}
 
 	branches := make([]Branch, 0, len(output))
+
 	for _, line := range output {
 		branch := Branch{
 			CommitSHA:  line[:7],
@@ -34,11 +35,14 @@ func DeleteBranch(ctx context.Context, branchName string) error {
 	if isProtectedBranch(branchName) {
 		return fmt.Errorf("%s is proteced branch, could not delete it", branchName)
 	}
+
 	_, err := run(ctx, "branch", "-D", branchName)
 	if err != nil {
 		return err
 	}
+
 	_, err = run(ctx, "push", "origin", "--delete", branchName)
+
 	return err
 }
 
@@ -46,7 +50,9 @@ func CreateBranch(ctx context.Context, branch Branch) error {
 	if isProtectedBranch(branch.BranchName) {
 		return fmt.Errorf("%s is protected branch, could not create it", branch.BranchName)
 	}
+
 	_, err := run(ctx, "branch", branch.BranchName, branch.CommitSHA)
+
 	return err
 }
 
@@ -61,6 +67,7 @@ func CreateMergeRequest(ctx context.Context, req MergeRequest) error {
 	if isProtectedBranch(req.SourceBranch) {
 		return fmt.Errorf("%s is protected branch, merge requests disabled", req.SourceBranch)
 	}
+
 	args := []string{
 		"push",
 		"-o", "merge_request.create",
@@ -76,6 +83,7 @@ func CreateMergeRequest(ctx context.Context, req MergeRequest) error {
 	args = append(args, "origin", req.SourceBranch+":"+req.SourceBranch)
 
 	_, err := run(ctx, args...)
+
 	return err
 }
 
@@ -86,6 +94,7 @@ func Commits(ctx context.Context, baseBranch, featureBranch string) ([]string, e
 	}
 
 	var baseFound, featFound bool
+
 	for i := range branches {
 		branch := branches[i].BranchName
 		baseFound = baseFound || (branch == baseBranch)
@@ -120,11 +129,14 @@ func SwitchBranch(ctx context.Context, branch, commit string) error {
 	if isProtectedBranch(branch) {
 		return fmt.Errorf("%s is protected branch, disable switch", branch)
 	}
+
 	_, err := run(ctx, "branch", "-f", branch, commit)
 	if err != nil {
 		return err
 	}
+
 	_, err = run(ctx, "push", "origin", "--force", branch+":"+branch)
+
 	return err
 }
 
@@ -152,6 +164,7 @@ func FindCommit(ctx context.Context, sha string) (*Commit, error) {
 
 func Rebase(ctx context.Context, baseBranch, featureBranch string) error {
 	fmt.Printf("git rebase --onto %s %s %s\n", baseBranch, baseBranch, featureBranch)
+
 	_, errRebase := run(ctx, "rebase", "--onto", baseBranch, baseBranch, featureBranch)
 	if errRebase != nil {
 		var errRun ErrRun
@@ -184,6 +197,7 @@ func (e ErrRun) log() {
 	for i := range e.stdOutput {
 		fmt.Println(e.stdOutput[i])
 	}
+
 	for i := range e.errOutput {
 		fmt.Println(e.errOutput[i])
 	}
@@ -193,11 +207,14 @@ func run(ctx context.Context, args ...string) ([]string, error) {
 	if !app.Config.EnableGitPush && args[0] == "push" {
 		return nil, nil
 	}
+
 	if app.Config.Verbose {
 		fmt.Print("git")
+
 		for i := range args {
 			fmt.Printf(" %s", args[i])
 		}
+
 		fmt.Println()
 	}
 
@@ -252,6 +269,7 @@ func bytesBufferToSlice(buf *bytes.Buffer) ([]string, error) {
 	for scanner.Scan() {
 		output = append(output, scanner.Text())
 	}
+
 	if err := scanner.Err(); err != nil {
 		return nil, err
 	}
