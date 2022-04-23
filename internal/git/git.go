@@ -157,8 +157,23 @@ func Rebase(ctx context.Context, baseBranch, featureBranch string) error {
 		if errAbort != nil {
 			fmt.Println(errAbort)
 		}
+type ErrRun struct {
+	stdOutput []string
+	errOutput []string
+	err       error
+}
+
+func (e ErrRun) Error() string {
+	return e.err.Error()
+}
+
+func (e ErrRun) log() {
+	for i := range e.stdOutput {
+		fmt.Println(e.stdOutput[i])
 	}
-	return err
+	for i := range e.errOutput {
+		fmt.Println(e.errOutput[i])
+	}
 }
 
 func run(ctx context.Context, args ...string) ([]string, error) {
@@ -186,14 +201,40 @@ func run(ctx context.Context, args ...string) ([]string, error) {
 
 	// cmd.Dir = app.Config.Repo
 
-	stdout, err := cmd.CombinedOutput()
-	if err != nil {
-		return nil, err
+	stdOut := new(bytes.Buffer)
+	stdErr := new(bytes.Buffer)
+
+	cmd.Stdout = stdOut
+	cmd.Stderr = stdErr
+
+	errRun := cmd.Run()
+
+	stdOutLines, errParseStdOut := bytesBufferToSlice(stdOut)
+	stdErrLines, errParseErrOut := bytesBufferToSlice(stdErr)
+
+	if errParseStdOut != nil {
+		fmt.Println(errParseStdOut)
 	}
 
+	if errParseErrOut != nil {
+		fmt.Println(errParseErrOut)
+	}
+
+	if errRun != nil {
+		return nil, ErrRun{
+			stdOutput: stdOutLines,
+			errOutput: stdErrLines,
+			err:       errRun,
+		}
+	}
+
+	return stdOutLines, nil
+}
+
+func bytesBufferToSlice(buf *bytes.Buffer) ([]string, error) {
 	var output []string
 
-	scanner := bufio.NewScanner(bytes.NewReader(stdout))
+	scanner := bufio.NewScanner(buf)
 
 	for scanner.Scan() {
 		output = append(output, scanner.Text())
