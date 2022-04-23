@@ -7,6 +7,10 @@ import (
 	"github.com/waffleboot/giiter/internal/app"
 )
 
+func isProtectedBranch(branchName string) bool {
+	return branchName == "main" || branchName == "master"
+}
+
 func FindFeatureBranch(ctx context.Context, featureBranch string) (string, error) {
 	if featureBranch == "master" || featureBranch == "main" {
 		return "", errors.New("master/main")
