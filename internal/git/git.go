@@ -31,8 +31,8 @@ func AllBranches(ctx context.Context) ([]Branch, error) {
 }
 
 func DeleteBranch(ctx context.Context, name string) error {
-	if name == "master" {
-		panic(name)
+	if isProtectedBranch(name) {
+		return fmt.Errorf("%s is proteced branch, could not delete it", name)
 	}
 	_, err := run(ctx, "branch", "-D", name)
 	if err != nil {
@@ -43,8 +43,8 @@ func DeleteBranch(ctx context.Context, name string) error {
 }
 
 func CreateBranch(ctx context.Context, branch Branch) error {
-	if branch.BranchName == "master" {
-		panic(branch.BranchName)
+	if isProtectedBranch(branch.BranchName) {
+		return fmt.Errorf("%s is protected branch, could not create it", branch.BranchName)
 	}
 	_, err := run(ctx, "branch", branch.BranchName, branch.CommitSHA)
 	return err
@@ -58,8 +58,8 @@ type MergeRequest struct {
 }
 
 func CreateMergeRequest(ctx context.Context, req MergeRequest) error {
-	if req.SourceBranch == "master" {
-		panic(req.SourceBranch)
+	if isProtectedBranch(req.SourceBranch) {
+		return fmt.Errorf("%s is protected branch, merge requests disabled", req.SourceBranch)
 	}
 	args := []string{
 		"push",
@@ -117,8 +117,8 @@ func Commits(ctx context.Context, baseBranch, featureBranch string) ([]string, e
 }
 
 func SwitchBranch(ctx context.Context, branch, commit string) error {
-	if branch == "master" {
-		panic(branch)
+	if isProtectedBranch(branch) {
+		return fmt.Errorf("%s is protected branch, disable switch", branch)
 	}
 	_, err := run(ctx, "branch", "-f", branch, commit)
 	if err != nil {
