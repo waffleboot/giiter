@@ -14,6 +14,19 @@ var listCmd = &cobra.Command{
 	RunE:    listFeatureCommits,
 }
 
+const (
+	Yellow = "\033[33m"
+	White  = "\033[97m"
+	Green  = "\033[32m"
+	Reset  = "\033[0m"
+	Red    = "\033[31m"
+
+	MarkOldCommit     = Red + "--" + Reset
+	MarkNewCommit     = Yellow + "++" + Reset
+	MarkOkCommit      = Green + "ok" + Reset
+	MarkMatchedCommit = Yellow + "**" + Reset
+)
+
 func listFeatureCommits(cmd *cobra.Command, args []string) error {
 	records, err := git.State(
 		cmd.Context(),
@@ -28,13 +41,13 @@ func listFeatureCommits(cmd *cobra.Command, args []string) error {
 
 		switch {
 		case record.IsNewCommit():
-			fmt.Printf("%d) ++ %s %s\n", i+1, record.FeatureSHA, record.FeatureMsg.Subject)
+			fmt.Printf("%d) %s %s %s\n", i+1, MarkNewCommit, record.FeatureSHA, record.FeatureMsg.Subject)
 		case record.IsOldCommit():
-			fmt.Printf("%d) -- %s [%s] %s\n", i+1, record.ReviewSHA, record.ReviewBranch, record.ReviewMsg.Subject)
+			fmt.Printf("%d) %s %s [%s] %s\n", i+1, MarkOldCommit, record.ReviewSHA, record.ReviewBranch, record.ReviewMsg.Subject)
 		case record.FeatureSHA != record.ReviewSHA:
-			fmt.Printf("%d) ** %s [%s] %s\n", i+1, record.FeatureSHA, record.ReviewBranch, record.FeatureMsg.Subject)
+			fmt.Printf("%d) %s %s [%s] %s\n", i+1, MarkMatchedCommit, record.FeatureSHA, record.ReviewBranch, record.FeatureMsg.Subject)
 		default:
-			fmt.Printf("%d) ok %s [%s] %s\n", i+1, record.FeatureSHA, record.ReviewBranch, record.FeatureMsg.Subject)
+			fmt.Printf("%d) %s %s [%s] %s\n", i+1, MarkOkCommit, record.FeatureSHA, record.ReviewBranch, record.FeatureMsg.Subject)
 		}
 	}
 
