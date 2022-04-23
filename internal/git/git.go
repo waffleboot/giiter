@@ -30,15 +30,15 @@ func AllBranches(ctx context.Context) ([]Branch, error) {
 	return branches, nil
 }
 
-func DeleteBranch(ctx context.Context, name string) error {
-	if isProtectedBranch(name) {
-		return fmt.Errorf("%s is proteced branch, could not delete it", name)
+func DeleteBranch(ctx context.Context, branchName string) error {
+	if isProtectedBranch(branchName) {
+		return fmt.Errorf("%s is proteced branch, could not delete it", branchName)
 	}
-	_, err := run(ctx, "branch", "-D", name)
+	_, err := run(ctx, "branch", "-D", branchName)
 	if err != nil {
 		return err
 	}
-	_, err = run(ctx, "push", "origin", "--delete", name)
+	_, err = run(ctx, "push", "origin", "--delete", branchName)
 	return err
 }
 
