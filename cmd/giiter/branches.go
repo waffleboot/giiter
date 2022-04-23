@@ -9,7 +9,7 @@ import (
 
 var branchesCmd = &cobra.Command{
 	Use:     "branches",
-	Short:   "show all branches",
+	Short:   "show all review branches",
 	Aliases: []string{"b"},
 	RunE:    showAllBranches,
 }
