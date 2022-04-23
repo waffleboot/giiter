@@ -22,20 +22,24 @@ func isProtectedBranch(branchName string) bool {
 }
 
 func FindFeatureBranch(ctx context.Context, featureBranch string) (string, error) {
-	if featureBranch == "master" || featureBranch == "main" {
-		return "", errors.New("master/main")
+	if isProtectedBranch(featureBranch) {
+		return "", fmt.Errorf("%s could not be feature branch", featureBranch)
 	}
 
 	if featureBranch != "" {
 		return featureBranch, nil
 	}
 
-	output, err := run(ctx, "branch", "--show-current")
+	currentBranch, err := getCurrentBranch(ctx)
 	if err != nil {
 		return "", err
 	}
 
-	return output[0], nil
+	if isProtectedBranch(currentBranch) {
+		return "", fmt.Errorf("current branch %s could not be feature branch", currentBranch)
+	}
+
+	return currentBranch, nil
 }
 
 func findBaseBranch(baseBranch, featureBranch string) string {
