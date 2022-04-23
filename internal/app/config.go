@@ -18,8 +18,8 @@ var Config struct {
 }
 
 type FeatureBranch struct {
-	BranchName string
-	BaseBranch string
+	BaseBranch string `yaml:"base_branch"`
+	BranchName string `yaml:"feature_branch"`
 }
 
 func LoadConfig(cfgFile string) error {
