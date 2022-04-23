@@ -14,7 +14,7 @@ type nullHash struct {
 	valid bool
 }
 
-func DiffHash(ctx context.Context, sha string) (nullHash, error) {
+func diffHash(ctx context.Context, sha string) (nullHash, error) {
 	files, err := run(ctx, "diff-tree", "-r", "--name-only", sha)
 	if err != nil {
 		return nullHash{}, err

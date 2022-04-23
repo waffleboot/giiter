@@ -77,7 +77,7 @@ func State(ctx context.Context, baseBranch, featureBranch string) ([]Record, err
 			featureDiffToIndex = make(map[string]int)
 
 			for i := range records {
-				diffHash, err := DiffHash(ctx, records[i].FeatureSHA)
+				diffHash, err := diffHash(ctx, records[i].FeatureSHA)
 				if err != nil {
 					return nil, err
 				}
@@ -93,7 +93,7 @@ func State(ctx context.Context, baseBranch, featureBranch string) ([]Record, err
 			return nil, err
 		}
 
-		diffHash, err := DiffHash(ctx, reviewSHA)
+		diffHash, err := diffHash(ctx, reviewSHA)
 		if err != nil {
 			return nil, err
 		}
