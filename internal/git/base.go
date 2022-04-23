@@ -66,13 +66,13 @@ func findBaseBranch(baseBranch, featureBranch string) string {
 	return baseBranch
 }
 
-func FindBaseAndFeatureBranches(ctx context.Context, baseBranch, featureBranch string) (string, string, error) {
-	featureBranch, err := FindFeatureBranch(ctx, featureBranch)
+func FindBaseAndFeatureBranches(ctx context.Context, userBaseBranch, userFeatureBranch string) (string, string, error) {
+	featureBranch, err := FindFeatureBranch(ctx, userFeatureBranch)
 	if err != nil {
 		return "", "", err
 	}
 
-	baseBranch = findBaseBranch(baseBranch, featureBranch)
+	baseBranch := findBaseBranch(userBaseBranch, featureBranch)
 	if baseBranch == "" {
 		return "", "", errors.New("base branch is required")
 	}
