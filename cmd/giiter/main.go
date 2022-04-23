@@ -46,6 +46,7 @@ func init() {
 	rootCmd.AddCommand(makeCmd)
 	rootCmd.AddCommand(deleteCmd)
 	rootCmd.AddCommand(assignCmd)
+	rootCmd.AddCommand(rebaseCmd)
 	rootCmd.AddCommand(branchesCmd)
 
 	addCommonFlags := func(cmd *cobra.Command) {
@@ -59,6 +60,7 @@ func init() {
 
 	addCommonFlags(listCmd)
 	addCommonFlags(makeCmd)
+	addCommonFlags(rebaseCmd)
 	addCommonFlags(assignCmd)
 
 	makeCmd.Flags().StringVarP(&app.Config.MergeRequestPrefix, "prefix", "t", "", "title prefix for merge request")

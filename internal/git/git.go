@@ -150,6 +150,17 @@ func FindCommit(ctx context.Context, sha string) (*Commit, error) {
 	return commit, nil
 }
 
+func Rebase(ctx context.Context, baseBranch, featureBranch string) error {
+	_, err := run(ctx, "rebase", "--onto", baseBranch, baseBranch, featureBranch)
+	if err != nil {
+		_, errAbort := run(ctx, "rebase", "--abort")
+		if errAbort != nil {
+			fmt.Println(errAbort)
+		}
+	}
+	return err
+}
+
 func run(ctx context.Context, args ...string) ([]string, error) {
 	if !app.Config.EnableGitPush && args[0] == "push" {
 		return nil, nil
