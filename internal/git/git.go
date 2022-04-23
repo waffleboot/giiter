@@ -151,12 +151,25 @@ func FindCommit(ctx context.Context, sha string) (*Commit, error) {
 }
 
 func Rebase(ctx context.Context, baseBranch, featureBranch string) error {
-	_, err := run(ctx, "rebase", "--onto", baseBranch, baseBranch, featureBranch)
-	if err != nil {
-		_, errAbort := run(ctx, "rebase", "--abort")
-		if errAbort != nil {
-			fmt.Println(errAbort)
+	fmt.Printf("git rebase --onto %s %s %s\n", baseBranch, baseBranch, featureBranch)
+	_, errRebase := run(ctx, "rebase", "--onto", baseBranch, baseBranch, featureBranch)
+	if errRebase != nil {
+		var errRun ErrRun
+		if errors.As(errRebase, &errRun) {
+			errRun.log()
 		}
+
+		_, errAbort := run(ctx, "rebase", "--abort")
+		if errors.As(errAbort, &errRun) {
+			errRun.log()
+		}
+
+		return errRebase
+	}
+
+	return nil
+}
+
 type ErrRun struct {
 	stdOutput []string
 	errOutput []string
