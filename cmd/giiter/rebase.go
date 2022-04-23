@@ -14,5 +14,5 @@ var rebaseCmd = &cobra.Command{
 }
 
 func rebaseFeatureBranch(cmd *cobra.Command, args []string) error {
-	return git.Rebase(cmd.Context(), baseBranch, featureBranch)
+	return git.Rebase(cmd.Context(), _baseBranch, _featureBranch)
 }

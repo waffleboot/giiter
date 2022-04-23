@@ -10,7 +10,7 @@ var deleteCmd = &cobra.Command{
 	Short:   "delete review branches",
 	Aliases: []string{"d"},
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
-		featureBranch, err = git.FindFeatureBranch(cmd.Context(), featureBranch)
+		_featureBranch, err = git.FindFeatureBranch(cmd.Context(), _featureBranch)
 
 		return
 	},
@@ -18,7 +18,7 @@ var deleteCmd = &cobra.Command{
 }
 
 func deleteReviewBranches(cmd *cobra.Command, args []string) error {
-	branches, err := git.AllReviewBranches(cmd.Context(), featureBranch)
+	branches, err := git.AllReviewBranches(cmd.Context(), _featureBranch)
 	if err != nil {
 		return err
 	}

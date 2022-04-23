@@ -10,7 +10,7 @@ import (
 
 var rootCmd = &cobra.Command{
 	PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
-		f, err := os.OpenFile(cfgFile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
+		f, err := os.OpenFile(_cfgFile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
 		if err != nil {
 			return err
 		}

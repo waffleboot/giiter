@@ -30,8 +30,8 @@ const (
 func listFeatureCommits(cmd *cobra.Command, args []string) error {
 	records, err := git.State(
 		cmd.Context(),
-		baseBranch,
-		featureBranch)
+		_baseBranch,
+		_featureBranch)
 	if err != nil {
 		return err
 	}

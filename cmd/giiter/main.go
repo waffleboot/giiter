@@ -14,9 +14,9 @@ import (
 )
 
 var (
-	cfgFile       string
-	baseBranch    string
-	featureBranch string
+	_cfgFile       string
+	_baseBranch    string
+	_featureBranch string
 )
 
 func main() {
@@ -39,7 +39,7 @@ func init() {
 	rootCmd.Use = "giiter"
 	rootCmd.SilenceUsage = true
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", ".giiter.yml", "config file")
+	rootCmd.PersistentFlags().StringVar(&_cfgFile, "config", ".giiter.yml", "config file")
 	rootCmd.PersistentFlags().BoolVarP(&app.Config.Debug, "debug", "d", false, "debug output")
 	rootCmd.PersistentFlags().BoolVarP(&app.Config.Verbose, "verbose", "v", false, "verbose output")
 	rootCmd.PersistentFlags().BoolVarP(&app.Config.EnableGitPush, "push", "p", false, "enable git push")
@@ -53,10 +53,10 @@ func init() {
 	rootCmd.AddCommand(branchesCmd)
 
 	addCommonFlags := func(cmd *cobra.Command) {
-		cmd.Flags().StringVarP(&baseBranch, "base", "b", "", "base branch")
-		cmd.Flags().StringVarP(&featureBranch, "feature", "f", "", "feature branch")
+		cmd.Flags().StringVarP(&_baseBranch, "base", "b", "", "base branch")
+		cmd.Flags().StringVarP(&_featureBranch, "feature", "f", "", "feature branch")
 		cmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) (err error) {
-			baseBranch, featureBranch, err = git.FindBaseAndFeatureBranches(cmd.Context(), baseBranch, featureBranch)
+			_baseBranch, _featureBranch, err = git.FindBaseAndFeatureBranches(cmd.Context(), _baseBranch, _featureBranch)
 
 			return
 		}
@@ -69,11 +69,11 @@ func init() {
 
 	makeCmd.Flags().StringVarP(&app.Config.MergeRequestPrefix, "prefix", "t", "", "title prefix for merge request")
 
-	deleteCmd.Flags().StringVarP(&featureBranch, "feature", "f", "", "feature branch")
+	deleteCmd.Flags().StringVarP(&_featureBranch, "feature", "f", "", "feature branch")
 }
 
 func initConfig() {
-	if err := app.LoadConfig(cfgFile); err != nil {
+	if err := app.LoadConfig(_cfgFile); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}

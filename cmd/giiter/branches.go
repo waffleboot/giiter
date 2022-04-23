@@ -12,7 +12,7 @@ var branchesCmd = &cobra.Command{
 	Short:   "show all review branches",
 	Aliases: []string{"b"},
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
-		featureBranch, err = git.FindFeatureBranch(cmd.Context(), featureBranch)
+		_featureBranch, err = git.FindFeatureBranch(cmd.Context(), _featureBranch)
 
 		return
 	},
@@ -20,7 +20,7 @@ var branchesCmd = &cobra.Command{
 }
 
 func showAllBranches(cmd *cobra.Command, args []string) error {
-	branches, err := git.AllReviewBranches(cmd.Context(), featureBranch)
+	branches, err := git.AllReviewBranches(cmd.Context(), _featureBranch)
 	if err != nil {
 		return err
 	}

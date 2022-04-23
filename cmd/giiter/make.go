@@ -19,8 +19,8 @@ var makeCmd = &cobra.Command{
 func makeReviewBranches(cmd *cobra.Command, args []string) error {
 	records, err := git.Refresh(
 		cmd.Context(),
-		baseBranch,
-		featureBranch)
+		_baseBranch,
+		_featureBranch)
 	if err != nil {
 		return err
 	}
@@ -30,12 +30,12 @@ func makeReviewBranches(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		prevBranch := baseBranch
+		prevBranch := _baseBranch
 		if i > 0 {
 			prevBranch = records[i-1].ReviewBranch
 		}
 
-		newBranch := fmt.Sprintf("review/%s/%d", featureBranch, records[i].ID)
+		newBranch := fmt.Sprintf("review/%s/%d", _featureBranch, records[i].ID)
 
 		title := "Draft: "
 		if app.Config.MergeRequestPrefix != "" {
