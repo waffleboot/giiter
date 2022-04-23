@@ -1,9 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/spf13/cobra"
 	"github.com/waffleboot/giiter/internal/git"
 )
@@ -21,18 +18,12 @@ var deleteCmd = &cobra.Command{
 }
 
 func deleteReviewBranches(cmd *cobra.Command, args []string) error {
-	branches, err := git.AllBranches(cmd.Context())
+	branches, err := git.AllReviewBranches(cmd.Context(), featureBranch)
 	if err != nil {
 		return err
 	}
 
-	prefix := fmt.Sprintf("review/%s/", featureBranch)
-
 	for _, branch := range branches {
-		if !strings.HasPrefix(branch.BranchName, prefix) {
-			continue
-		}
-
 		if err := git.DeleteBranch(cmd.Context(), branch.BranchName); err != nil {
 			return err
 		}
