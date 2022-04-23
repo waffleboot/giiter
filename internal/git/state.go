@@ -10,15 +10,132 @@ import (
 	"github.com/waffleboot/giiter/internal/app"
 )
 
-func findReviewBranches(ctx context.Context, featureBranch string) ([]ReviewBranch, error) {
-	branches, err := AllBranches(ctx)
+type records struct {
+	records   []Record
+	shaIndex  map[string]int
+	subjIndex map[string]int
+	diffIndex map[string]int
+}
+
+func State(ctx context.Context, baseBranch, featureBranch string) ([]Record, error) {
+	r, err := createRecords(ctx, baseBranch, featureBranch)
 	if err != nil {
 		return nil, err
 	}
 
+	branches, err := findReviewBranches(ctx, featureBranch)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.matchCommitsAndBranches(ctx, branches)
+}
+
+func createRecords(ctx context.Context, baseBranch, featureBranch string) (*records, error) {
+	commits, err := Commits(ctx, baseBranch, featureBranch)
+	if err != nil {
+		return nil, errors.WithMessage(err, "get state")
+	}
+
+	r := &records{
+		records:   make([]Record, 0, len(commits)),
+		shaIndex:  make(map[string]int),
+		subjIndex: make(map[string]int),
+	}
+
+	for i := range commits {
+		commit, errFind := FindCommit(ctx, commits[i])
+		if errFind != nil {
+			return nil, errFind
+		}
+
+		r.records = append(r.records, Record{
+			FeatureSHA: commit.SHA,
+			FeatureMsg: commit.Message,
+		})
+
+		r.shaIndex[commit.SHA] = i
+
+		r.subjIndex[commit.Message.Subject] = i
+	}
+
+	return r, nil
+}
+
+func (r *records) matchCommitsAndBranches(ctx context.Context, branches []ReviewBranch) ([]Record, error) {
+	for i := range branches {
+		branch := branches[i]
+
+		reviewSHA := branch.CommitSHA
+		if index, ok := r.shaIndex[reviewSHA]; ok {
+			r.records[index].ID = branch.ID
+			r.records[index].ReviewSHA = reviewSHA
+			r.records[index].ReviewMsg = r.records[index].FeatureMsg
+			r.records[index].ReviewBranch = branch.BranchName
+
+			continue
+		}
+
+		commit, err := FindCommit(ctx, reviewSHA)
+		if err != nil {
+			return nil, err
+		}
+
+		if errLazy := r.lazyDiffHashes(ctx); errLazy != nil {
+			return nil, errLazy
+		}
+
+		diffHash, err := diffHash(ctx, reviewSHA)
+		if err != nil {
+			return nil, err
+		}
+
+		if diffHash.valid {
+			if index, ok := r.diffIndex[diffHash.hash]; ok {
+				r.records[index].ID = branch.ID
+				r.records[index].ReviewSHA = commit.SHA
+				r.records[index].ReviewMsg = commit.Message
+				r.records[index].ReviewBranch = branch.BranchName
+
+				continue
+			}
+		}
+
+		if app.Config.UseSubjectToMatch {
+			if index, ok := r.subjIndex[commit.Message.Subject]; ok {
+				r.records[index].ID = branch.ID
+				r.records[index].ReviewSHA = commit.SHA
+				r.records[index].ReviewMsg = commit.Message
+				r.records[index].ReviewBranch = branch.BranchName
+
+				continue
+			}
+		}
+
+		record := Record{
+			ID:           branch.ID,
+			FeatureSHA:   "",
+			FeatureMsg:   Message{"", ""},
+			ReviewSHA:    commit.SHA,
+			ReviewMsg:    commit.Message,
+			ReviewBranch: branch.BranchName,
+		}
+
+		r.records = append(r.records, record)
+	}
+
+	r.fillNewCommitIDs()
+
+	return r.records, nil
+}
+
+func findReviewBranches(ctx context.Context, featureBranch string) (reviewBranches []ReviewBranch, err error) {
 	branchPrefix := fmt.Sprintf("review/%s/", featureBranch)
 
-	reviewBranches := make([]ReviewBranch, 0, 16)
+	branches, err := AllBranches(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	for _, branch := range branches {
 		if !strings.HasPrefix(branch.BranchName, branchPrefix) {
@@ -38,132 +155,41 @@ func findReviewBranches(ctx context.Context, featureBranch string) ([]ReviewBran
 		})
 	}
 
-	return reviewBranches, nil
+	return
 }
 
-func State(ctx context.Context, baseBranch, featureBranch string) ([]Record, error) {
-	commits, err := Commits(ctx, baseBranch, featureBranch)
-	if err != nil {
-		return nil, errors.WithMessage(err, "get state")
-	}
+func (r *records) lazyDiffHashes(ctx context.Context) error {
+	if r.diffIndex == nil {
+		r.diffIndex = make(map[string]int)
 
-	records := make([]Record, 0, len(commits))
+		for i := range r.records {
+			diffHash, err := diffHash(ctx, r.records[i].FeatureSHA)
+			if err != nil {
+				return err
+			}
 
-	featureSHAIndex := make(map[string]int)
-
-	featureSubjIndex := make(map[string]int)
-
-	for i := range commits {
-		commit, errCommit := FindCommit(ctx, commits[i])
-		if errCommit != nil {
-			return nil, errCommit
-		}
-
-		record := Record{
-			FeatureSHA: commit.SHA,
-			FeatureMsg: commit.Message,
-		}
-		records = append(records, record)
-
-		featureSHAIndex[commit.SHA] = i
-
-		featureSubjIndex[commit.Message.Subject] = i
-	}
-
-	branches, err := findReviewBranches(ctx, featureBranch)
-	if err != nil {
-		return nil, err
-	}
-
-	var featureDiffToIndex map[string]int
-
-	for i := range branches {
-		branch := branches[i]
-
-		reviewSHA := branch.CommitSHA
-		if index, ok := featureSHAIndex[reviewSHA]; ok {
-			records[index].ID = branch.ID
-			records[index].ReviewSHA = reviewSHA
-			records[index].ReviewMsg = records[index].FeatureMsg
-			records[index].ReviewBranch = branch.BranchName
-
-			continue
-		}
-
-		if featureDiffToIndex == nil {
-			featureDiffToIndex = make(map[string]int)
-
-			for i := range records {
-				diffHash, errDiff := diffHash(ctx, records[i].FeatureSHA)
-				if errDiff != nil {
-					return nil, errDiff
-				}
-
-				if diffHash.valid {
-					featureDiffToIndex[diffHash.hash] = i
-				}
+			if diffHash.valid {
+				r.diffIndex[diffHash.hash] = i
 			}
 		}
-
-		commit, err := FindCommit(ctx, reviewSHA)
-		if err != nil {
-			return nil, err
-		}
-
-		diffHash, err := diffHash(ctx, reviewSHA)
-		if err != nil {
-			return nil, err
-		}
-
-		if diffHash.valid {
-			if index, ok := featureDiffToIndex[diffHash.hash]; ok {
-				records[index].ID = branch.ID
-				records[index].ReviewSHA = commit.SHA
-				records[index].ReviewMsg = commit.Message
-				records[index].ReviewBranch = branch.BranchName
-
-				continue
-			}
-		}
-
-		if app.Config.UseSubjectToMatch {
-			if index, ok := featureSubjIndex[commit.Message.Subject]; ok {
-				records[index].ID = branch.ID
-				records[index].ReviewSHA = commit.SHA
-				records[index].ReviewMsg = commit.Message
-				records[index].ReviewBranch = branch.BranchName
-
-				continue
-			}
-		}
-
-		record := Record{
-			ID:           branch.ID,
-			FeatureSHA:   "",
-			FeatureMsg:   Message{"", ""},
-			ReviewSHA:    commit.SHA,
-			ReviewMsg:    commit.Message,
-			ReviewBranch: branch.BranchName,
-		}
-
-		records = append(records, record)
 	}
 
+	return nil
+}
+
+func (r *records) fillNewCommitIDs() {
 	var maxID int
 
-	for i := range records {
-		if records[i].ID > maxID {
-			maxID = records[i].ID
+	for i := range r.records {
+		if r.records[i].ID > maxID {
+			maxID = r.records[i].ID
 		}
 	}
 
-	for i := range records {
-		if records[i].IsNewCommit() {
+	for i := range r.records {
+		if r.records[i].IsNewCommit() {
 			maxID++
-			records[i].ID = maxID
+			r.records[i].ID = maxID
 		}
 	}
-
-	return records, nil
 }
-
