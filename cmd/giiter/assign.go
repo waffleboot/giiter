@@ -12,7 +12,8 @@ var assignCmd = &cobra.Command{
 	Use:     "assign",
 	Short:   "reassign commit to review branch",
 	Aliases: []string{"a"},
-	RunE:    assign,
+	// PersistentPreRunE не нужен, см. main
+	RunE: assign,
 }
 
 func assign(cmd *cobra.Command, args []string) error {

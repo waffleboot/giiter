@@ -9,7 +9,8 @@ var rebaseCmd = &cobra.Command{
 	Use:     "rebase",
 	Short:   "rebase feature branch",
 	Aliases: []string{"r"},
-	RunE:    rebaseFeatureBranch,
+	// PersistentPreRunE не нужен, см. main
+	RunE: rebaseFeatureBranch,
 }
 
 func rebaseFeatureBranch(cmd *cobra.Command, args []string) error {

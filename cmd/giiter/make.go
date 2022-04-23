@@ -12,7 +12,8 @@ var makeCmd = &cobra.Command{
 	Use:     "make",
 	Short:   "make review branches",
 	Aliases: []string{"m"},
-	RunE:    makeReviewBranches,
+	// PersistentPreRunE не нужен, см. main
+	RunE: makeReviewBranches,
 }
 
 func makeReviewBranches(cmd *cobra.Command, args []string) error {
