@@ -3,9 +3,19 @@ package git
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/waffleboot/giiter/internal/app"
 )
+
+func getCurrentBranch(ctx context.Context) (string, error) {
+	output, err := run(ctx, "branch", "--show-current")
+	if err != nil {
+		return "", err
+	}
+
+	return output[0], nil
+}
 
 func isProtectedBranch(branchName string) bool {
 	return branchName == "main" || branchName == "master"
