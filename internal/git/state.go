@@ -23,7 +23,7 @@ func State(ctx context.Context, baseBranch, featureBranch string) ([]Record, err
 		return nil, err
 	}
 
-	branches, err := findReviewBranches(ctx, featureBranch)
+	branches, err := AllReviewBranches(ctx, featureBranch)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +129,7 @@ func (r *records) matchCommitsAndBranches(ctx context.Context, branches []Review
 	return r.records, nil
 }
 
-func findReviewBranches(ctx context.Context, featureBranch string) (reviewBranches []ReviewBranch, err error) {
+func AllReviewBranches(ctx context.Context, featureBranch string) (reviewBranches []ReviewBranch, err error) {
 	branchPrefix := fmt.Sprintf("review/%s/", featureBranch)
 
 	branches, err := AllBranches(ctx)
