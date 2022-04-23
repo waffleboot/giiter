@@ -20,7 +20,7 @@ var branchesCmd = &cobra.Command{
 }
 
 func showAllBranches(cmd *cobra.Command, args []string) error {
-	branches, err := git.AllBranches(cmd.Context())
+	branches, err := git.AllReviewBranches(cmd.Context(), featureBranch)
 	if err != nil {
 		return err
 	}
