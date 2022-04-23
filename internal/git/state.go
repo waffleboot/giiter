@@ -23,10 +23,9 @@ func State(ctx context.Context, baseBranch, featureBranch string) ([]Record, err
 	featureSubjIndex := make(map[string]int)
 
 	for i := range commits {
-
-		commit, err := FindCommit(ctx, commits[i])
-		if err != nil {
-			return nil, err
+		commit, errCommit := FindCommit(ctx, commits[i])
+		if errCommit != nil {
+			return nil, errCommit
 		}
 
 		record := Record{
@@ -69,23 +68,23 @@ func State(ctx context.Context, baseBranch, featureBranch string) ([]Record, err
 			records[index].ReviewSHA = reviewSHA
 			records[index].ReviewMsg = records[index].FeatureMsg
 			records[index].ReviewBranch = reviewBranch.BranchName
+
 			continue
 		}
 
 		if featureDiffToIndex == nil {
-
 			featureDiffToIndex = make(map[string]int)
 
 			for i := range records {
-				diffHash, err := diffHash(ctx, records[i].FeatureSHA)
-				if err != nil {
-					return nil, err
+				diffHash, errDiff := diffHash(ctx, records[i].FeatureSHA)
+				if errDiff != nil {
+					return nil, errDiff
 				}
+
 				if diffHash.valid {
 					featureDiffToIndex[diffHash.hash] = i
 				}
 			}
-
 		}
 
 		commit, err := FindCommit(ctx, reviewSHA)
@@ -104,6 +103,7 @@ func State(ctx context.Context, baseBranch, featureBranch string) ([]Record, err
 				records[index].ReviewSHA = commit.SHA
 				records[index].ReviewMsg = commit.Message
 				records[index].ReviewBranch = reviewBranch.BranchName
+
 				continue
 			}
 		}
@@ -114,6 +114,7 @@ func State(ctx context.Context, baseBranch, featureBranch string) ([]Record, err
 				records[index].ReviewSHA = commit.SHA
 				records[index].ReviewMsg = commit.Message
 				records[index].ReviewBranch = reviewBranch.BranchName
+
 				continue
 			}
 		}
@@ -161,9 +162,11 @@ func Refresh(ctx context.Context, baseBranch, featureBranch string) ([]Record, e
 		if record.IsOldCommit() || record.IsNewCommit() || record.FeatureSHA == record.ReviewSHA {
 			continue
 		}
-		if err = SwitchBranch(ctx, record.ReviewBranch, record.FeatureSHA); err != nil {
-			return nil, err
+
+		if errSwitch := SwitchBranch(ctx, record.ReviewBranch, record.FeatureSHA); errSwitch != nil {
+			return nil, errSwitch
 		}
+
 		records[i].ReviewSHA = record.FeatureSHA
 		records[i].ReviewMsg = record.FeatureMsg
 	}
@@ -181,11 +184,14 @@ func Refresh(ctx context.Context, baseBranch, featureBranch string) ([]Record, e
 	// коммиты на них устарели
 
 	newRecords := make([]Record, 0, len(records))
+
 	for i := range records {
 		if records[i].FeatureSHA != "" {
 			newRecords = append(newRecords, records[i])
+
 			continue
 		}
+
 		if err := DeleteBranch(ctx, records[i].ReviewBranch); err != nil {
 			return nil, err
 		}
