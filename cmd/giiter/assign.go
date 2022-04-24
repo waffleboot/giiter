@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/pkg/errors"
@@ -52,6 +53,10 @@ func assign(cmd *cobra.Command, args []string) error {
 		return errors.New("branch position is greater then count of records")
 	case shaIndex == branchIndex:
 		return errors.New("you point the same record")
+	case records[shaIndex].HasReview():
+		return fmt.Errorf("could not reassign commit %s with review", shaPos)
+	case !records[branchIndex].HasReview():
+		return fmt.Errorf("could not reassign commit %s without review", branchPos)
 	}
 
 	featureSHA := records[shaIndex-1].FeatureSHA
