@@ -33,10 +33,6 @@ func assign(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if branchIndex == shaIndex {
-		return errors.New("you point the same record")
-	}
-
 	records, err := git.State(
 		cmd.Context(),
 		_baseBranch,
@@ -45,8 +41,21 @@ func assign(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	branchName := records[branchIndex-1].ReviewBranch.BranchName
+	switch {
+	case shaIndex < 0:
+		return errors.New("commit position is negative")
+	case shaIndex > len(records):
+		return errors.New("commit position is greater then count of records")
+	case branchIndex < 0:
+		return errors.New("branch position is negative")
+	case branchIndex > len(records):
+		return errors.New("branch position is greater then count of records")
+	case shaIndex == branchIndex:
+		return errors.New("you point the same record")
+	}
+
 	featureSHA := records[shaIndex-1].FeatureSHA
+	branchName := records[branchIndex-1].ReviewBranch.BranchName
 
 	reviewIndex := -1
 	commitIndex := -1
