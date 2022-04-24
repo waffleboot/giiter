@@ -93,7 +93,7 @@ func newRecord(commit *commit) Record {
 	}
 }
 
-func newReviewRecord(branch reviewBranch, commit *commit) Record {
+func newReviewRecord(commit *commit, branch reviewBranch) Record {
 	return Record{
 		reviewBranches: reviewBranches{
 			commitSHA: commit.SHA,

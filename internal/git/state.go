@@ -111,7 +111,7 @@ func (r *records) matchCommitsAndBranches(ctx context.Context, branches []review
 func (r *records) addReviewRecord(branch reviewBranch, commit *commit) {
 	r.shaIndex[commit.SHA] = len(r.records)
 
-	r.records = append(r.records, newReviewRecord(branch, commit))
+	r.records = append(r.records, newReviewRecord(commit, branch))
 }
 
 func AllReviewBranches(ctx context.Context, featureBranch string) (result []reviewBranch, err error) {
