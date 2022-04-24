@@ -34,7 +34,7 @@ type Record struct {
 type ReviewBranches struct {
 	CommitSHA      string
 	ReviewMsg      Message
-	ReviewBranches []ReviewBranch
+	reviewBranches []ReviewBranch
 }
 
 func (r *Record) HasReview() bool {
@@ -55,12 +55,12 @@ func (r *Record) MatchedCommit() bool {
 
 func (r *ReviewBranches) AddReviewBranch(branch ReviewBranch) {
 	r.CommitSHA = branch.branch.CommitSHA
-	r.ReviewBranches = append(r.ReviewBranches, branch)
+	r.reviewBranches = append(r.reviewBranches, branch)
 }
 
 func (r *ReviewBranches) MaxID() int {
 	var maxID int
-	for _, branch := range r.ReviewBranches {
+	for _, branch := range r.reviewBranches {
 		if branch.id > maxID {
 			maxID = branch.id
 		}
@@ -92,8 +92,8 @@ func (r *Record) CommitMessage() Message {
 }
 
 func (r *ReviewBranches) reviewBranchNames() []string {
-	a := make([]string, 0, len(r.ReviewBranches))
-	for _, branch := range r.ReviewBranches {
+	a := make([]string, 0, len(r.reviewBranches))
+	for _, branch := range r.reviewBranches {
 		a = append(a, branch.BranchName())
 	}
 
@@ -101,11 +101,11 @@ func (r *ReviewBranches) reviewBranchNames() []string {
 }
 
 func (r *ReviewBranches) anyReviewBranch() (string, error) {
-	if len(r.ReviewBranches) > 1 {
+	if len(r.reviewBranches) > 1 {
 		return "", errors.New("unable to choose any review branch")
 	}
 
-	return r.ReviewBranches[0].BranchName(), nil
+	return r.reviewBranches[0].BranchName(), nil
 }
 
 func (r *ReviewBranch) BranchName() string {
