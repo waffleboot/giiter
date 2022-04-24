@@ -19,7 +19,7 @@ type Branch struct {
 	BranchName string
 }
 
-type ReviewBranch struct {
+type reviewBranch struct {
 	id     int
 	branch Branch
 }
@@ -34,7 +34,7 @@ type Record struct {
 type ReviewBranches struct {
 	CommitSHA string
 	ReviewMsg Message
-	branches  []ReviewBranch
+	branches  []reviewBranch
 }
 
 func (r *Record) HasReview() bool {
@@ -53,7 +53,7 @@ func (r *Record) MatchedCommit() bool {
 	return r.FeatureSHA == r.reviewBranches.CommitSHA
 }
 
-func (r *ReviewBranches) AddReviewBranch(branch ReviewBranch) {
+func (r *ReviewBranches) AddReviewBranch(branch reviewBranch) {
 	r.CommitSHA = branch.branch.CommitSHA
 	r.branches = append(r.branches, branch)
 }
@@ -108,6 +108,6 @@ func (r *ReviewBranches) anyReviewBranch() (string, error) {
 	return r.branches[0].BranchName(), nil
 }
 
-func (r *ReviewBranch) BranchName() string {
+func (r *reviewBranch) BranchName() string {
 	return r.branch.BranchName
 }

@@ -62,7 +62,7 @@ func createRecords(ctx context.Context, baseBranch, featureBranch string) (*reco
 	return r, nil
 }
 
-func (r *records) matchCommitsAndBranches(ctx context.Context, branches []ReviewBranch) ([]Record, error) {
+func (r *records) matchCommitsAndBranches(ctx context.Context, branches []reviewBranch) ([]Record, error) {
 	for i := range branches {
 		branch := branches[i]
 
@@ -111,7 +111,7 @@ func (r *records) matchCommitsAndBranches(ctx context.Context, branches []Review
 	return r.records, nil
 }
 
-func (r *records) addRecord(branch ReviewBranch, commit *Commit) {
+func (r *records) addRecord(branch reviewBranch, commit *Commit) {
 	record := Record{
 		reviewBranches: ReviewBranches{
 			ReviewMsg: commit.Message,
@@ -125,7 +125,7 @@ func (r *records) addRecord(branch ReviewBranch, commit *Commit) {
 	r.records = append(r.records, record)
 }
 
-func AllReviewBranches(ctx context.Context, featureBranch string) (result []ReviewBranch, err error) {
+func AllReviewBranches(ctx context.Context, featureBranch string) (result []reviewBranch, err error) {
 	branchPrefix := fmt.Sprintf("review/%s/", featureBranch)
 
 	branches, err := AllBranches(ctx)
@@ -145,7 +145,7 @@ func AllReviewBranches(ctx context.Context, featureBranch string) (result []Revi
 			return nil, err
 		}
 
-		result = append(result, ReviewBranch{
+		result = append(result, reviewBranch{
 			id:     id,
 			branch: branch,
 		})
