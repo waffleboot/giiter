@@ -33,6 +33,10 @@ func assign(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	if branchIndex == shaIndex {
+		return errors.New("you point the same record")
+	}
+
 	records, err := git.State(
 		cmd.Context(),
 		_baseBranch,
