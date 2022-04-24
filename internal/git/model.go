@@ -28,10 +28,10 @@ type Record struct {
 	NewID          int
 	FeatureSHA     string
 	FeatureMsg     Message
-	reviewBranches ReviewBranches
+	reviewBranches reviewBranches
 }
 
-type ReviewBranches struct {
+type reviewBranches struct {
 	CommitSHA string
 	ReviewMsg Message
 	branches  []reviewBranch
@@ -53,12 +53,12 @@ func (r *Record) MatchedCommit() bool {
 	return r.FeatureSHA == r.reviewBranches.CommitSHA
 }
 
-func (r *ReviewBranches) AddReviewBranch(branch reviewBranch) {
+func (r *reviewBranches) AddReviewBranch(branch reviewBranch) {
 	r.CommitSHA = branch.branch.CommitSHA
 	r.branches = append(r.branches, branch)
 }
 
-func (r *ReviewBranches) MaxID() int {
+func (r *reviewBranches) MaxID() int {
 	var maxID int
 	for _, branch := range r.branches {
 		if branch.id > maxID {
@@ -91,7 +91,7 @@ func (r *Record) CommitMessage() Message {
 	return r.reviewBranches.ReviewMsg
 }
 
-func (r *ReviewBranches) reviewBranchNames() []string {
+func (r *reviewBranches) reviewBranchNames() []string {
 	a := make([]string, 0, len(r.branches))
 	for _, branch := range r.branches {
 		a = append(a, branch.BranchName())
@@ -100,7 +100,7 @@ func (r *ReviewBranches) reviewBranchNames() []string {
 	return a
 }
 
-func (r *ReviewBranches) anyReviewBranch() (string, error) {
+func (r *reviewBranches) anyReviewBranch() (string, error) {
 	if len(r.branches) > 1 {
 		return "", errors.New("unable to choose any review branch")
 	}

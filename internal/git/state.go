@@ -113,7 +113,7 @@ func (r *records) matchCommitsAndBranches(ctx context.Context, branches []review
 
 func (r *records) addRecord(branch reviewBranch, commit *Commit) {
 	record := Record{
-		reviewBranches: ReviewBranches{
+		reviewBranches: reviewBranches{
 			ReviewMsg: commit.Message,
 		},
 	}
