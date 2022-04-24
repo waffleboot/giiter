@@ -16,11 +16,13 @@ func Refresh(ctx context.Context, baseBranch, featureBranch string) ([]Record, e
 			continue
 		}
 
-		if errSwitch := SwitchBranch(ctx, record.ReviewBranch.BranchName, record.FeatureSHA); errSwitch != nil {
-			return nil, errSwitch
+		for _, branch := range record.ReviewBranchNames() {
+			if errSwitch := SwitchBranch(ctx, branch, record.FeatureSHA); errSwitch != nil {
+				return nil, errSwitch
+			}
 		}
 
-		records[i].ReviewBranch.CommitSHA = record.FeatureSHA
+		records[i].ReviewBranches.CommitSHA = record.FeatureSHA
 		records[i].ReviewMsg = record.FeatureMsg
 	}
 
@@ -45,8 +47,10 @@ func Refresh(ctx context.Context, baseBranch, featureBranch string) ([]Record, e
 			continue
 		}
 
-		if err := DeleteBranch(ctx, records[i].ReviewBranch.BranchName); err != nil {
-			return nil, err
+		for _, branch := range records[i].ReviewBranchNames() {
+			if err := DeleteBranch(ctx, branch); err != nil {
+				return nil, err
+			}
 		}
 	}
 
