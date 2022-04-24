@@ -25,14 +25,13 @@ func makeReviewBranches(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	prevBranch := _baseBranch
+
 	for i := range records {
 		if records[i].HasReview() {
-			continue
-		}
+			prevBranch = records[i].ReviewBranch.BranchName
 
-		prevBranch := _baseBranch
-		if i > 0 {
-			prevBranch = records[i-1].ReviewBranch.BranchName
+			continue
 		}
 
 		newBranch := fmt.Sprintf("review/%s/%d", _featureBranch, records[i].NewID)
@@ -64,7 +63,7 @@ func makeReviewBranches(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		records[i].ReviewBranch.BranchName = newBranch
+		prevBranch = newBranch
 	}
 
 	return listFeatureCommits(cmd, args)
