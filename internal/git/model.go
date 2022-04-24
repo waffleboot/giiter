@@ -54,7 +54,6 @@ func (r *Record) MatchedCommit() bool {
 }
 
 func (r *reviewBranches) AddReviewBranch(branch reviewBranch) {
-	r.commitSHA = branch.branch.CommitSHA
 	r.branches = append(r.branches, branch)
 }
 
@@ -98,6 +97,23 @@ func (r *Record) switchBranch() {
 	r.reviewBranches.reviewMsg = r.FeatureMsg
 }
 
+func newRecord(commit *commit) Record {
+	return Record{
+		FeatureSHA: commit.SHA,
+		FeatureMsg: commit.Message,
+	}
+}
+
+func newReviewRecord(branch reviewBranch, commit *commit) Record {
+	return Record{
+		reviewBranches: reviewBranches{
+			commitSHA: branch.branch.CommitSHA,
+			reviewMsg: commit.Message,
+			branches:  []reviewBranch{branch},
+		},
+	}
+}
+
 func (r *reviewBranches) reviewBranchNames() []string {
 	a := make([]string, 0, len(r.branches))
 	for _, branch := range r.branches {
@@ -117,4 +133,11 @@ func (r *reviewBranches) anyReviewBranch() (string, error) {
 
 func (r *reviewBranch) BranchName() string {
 	return r.branch.BranchName
+}
+
+func newReviewBranch(id int, branch Branch) reviewBranch {
+	return reviewBranch{
+		id:     id,
+		branch: branch,
+	}
 }
