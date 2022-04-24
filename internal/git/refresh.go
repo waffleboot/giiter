@@ -37,21 +37,20 @@ func Refresh(ctx context.Context, baseBranch, featureBranch string) ([]Record, e
 	// так как все коммиты на своих review ветках, можно удалять старые review ветки
 	// коммиты на них устарели
 
-	newRecords := make([]Record, 0, len(records))
+	var j int
 
-	for i := range records {
-		if records[i].featureSHA != "" { // TODO may be !IsOldCommit
-			newRecords = append(newRecords, records[i])
-
+	for _, record := range records {
+		if record.IsOldCommit() {
+			if err := deleteReviewBranches(ctx, record); err != nil {
+				return nil, err
+			}
 			continue
 		}
-
-		if err := deleteReviewBranches(ctx, records[i]); err != nil {
-			return nil, err
-		}
+		records[j] = record
+		j++
 	}
 
-	return newRecords, nil
+	return records[:j], nil
 }
 
 func deleteReviewBranches(ctx context.Context, record Record) error {
