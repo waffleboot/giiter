@@ -51,7 +51,9 @@ func showDiff(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("[%s] %s\n", record.CommitSHA(), record.CommitMessage().Subject)
+	fmt.Printf("[%s%s%s] %s%s%s\n",
+		Green, record.CommitSHA(), Reset,
+		Yellow, record.CommitMessage().Subject, Reset)
 
 	for _, line := range lines {
 		fmt.Println(line)
