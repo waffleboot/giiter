@@ -35,7 +35,7 @@ func makeReviewBranches(cmd *cobra.Command, args []string) error {
 			prevBranch = records[i-1].ReviewBranch.BranchName
 		}
 
-		newBranch := fmt.Sprintf("review/%s/%d", _featureBranch, records[i].ReviewBranch.ID)
+		newBranch := fmt.Sprintf("review/%s/%d", _featureBranch, records[i].NewID)
 
 		title := "Draft: "
 		if app.Config.MergeRequestPrefix != "" {

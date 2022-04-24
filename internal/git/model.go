@@ -21,6 +21,7 @@ type ReviewBranch struct {
 }
 
 type Record struct {
+	NewID        int
 	FeatureSHA   string
 	FeatureMsg   Message
 	ReviewMsg    Message
