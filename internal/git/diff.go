@@ -77,3 +77,7 @@ func diffHash(ctx context.Context, sha string) (nullHash, error) {
 
 	return nullHash{hash: strSum, valid: true}, nil
 }
+
+func Diff(ctx context.Context, commitSHA string) ([]string, error) {
+	return run(ctx, "diff", commitSHA)
+}

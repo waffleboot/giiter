@@ -46,6 +46,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&app.Config.UseSubjectToMatch, "subj", false, "use commit subject to match")
 
 	rootCmd.AddCommand(listCmd)
+	rootCmd.AddCommand(cmdDiff)
 	rootCmd.AddCommand(makeCmd)
 	rootCmd.AddCommand(deleteCmd)
 	rootCmd.AddCommand(assignCmd)
@@ -64,6 +65,7 @@ func init() {
 
 	addCommonFlags(listCmd)
 	addCommonFlags(makeCmd)
+	addCommonFlags(cmdDiff)
 	addCommonFlags(rebaseCmd)
 	addCommonFlags(assignCmd)
 
