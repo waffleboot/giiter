@@ -57,6 +57,8 @@ func assign(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	// TODO зачем это сделано?
+
 	if reviewIndex < 0 || commitIndex < 0 || reviewIndex == commitIndex {
 		return nil
 	}
