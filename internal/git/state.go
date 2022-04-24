@@ -163,8 +163,8 @@ func (r *records) fillNewCommitIDs() {
 	var maxID int
 
 	for i := range r.records {
-		if r.records[i].reviewBranches.MaxID() > maxID {
-			maxID = r.records[i].reviewBranches.MaxID()
+		if r.records[i].MaxID() > maxID {
+			maxID = r.records[i].MaxID()
 		}
 	}
 
