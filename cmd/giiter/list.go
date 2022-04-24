@@ -49,31 +49,23 @@ func listFeatureCommits(cmd *cobra.Command, args []string) error {
 		case record.IsOldCommit():
 			fmt.Printf("%d) %s %s [%s] %s\n", i+1,
 				MarkOldCommit,
-				record.ReviewBranch.CommitSHA,
-				record.ReviewBranch.BranchName,
+				record.ReviewBranches.CommitSHA,
+				strings.Join(record.ReviewBranchNames(), ","),
 				record.ReviewMsg.Subject)
 		case record.MatchedCommit():
 			fmt.Printf("%d) %s %s [%s] %s\n", i+1,
 				MarkOkCommit,
 				record.FeatureSHA,
-				record.ReviewBranch.BranchName,
+				strings.Join(record.ReviewBranchNames(), ","),
 				record.FeatureMsg.Subject)
 		default:
 			fmt.Printf("%d) %s %s [%s] %s\n", i+1,
 				MarkSwitchCommit,
 				record.FeatureSHA,
-				record.ReviewBranch.BranchName,
+				strings.Join(record.ReviewBranchNames(), ","),
 				record.FeatureMsg.Subject)
 		}
 	}
 
 	return nil
-}
-
-func join(branches []git.ReviewBranch) string {
-	a := make([]string, 0, len(branches))
-	for _, branch := range branches {
-		a = append(a, branch.BranchName)
-	}
-	return strings.Join(a, ",")
 }

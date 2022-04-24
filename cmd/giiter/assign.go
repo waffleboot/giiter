@@ -41,25 +41,12 @@ func assign(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	branch = records[branchIndex-1].ReviewBranch.BranchName
-	sha = records[shaIndex-1].FeatureSHA
-
-	reviewIndex := -1
-	commitIndex := -1
-
-	for i := range records {
-		if records[i].ReviewBranch.BranchName == branch {
-			reviewIndex = i
-		}
-
-		if records[i].FeatureSHA == sha {
-			commitIndex = i
-		}
-	}
-
-	if reviewIndex < 0 || commitIndex < 0 || reviewIndex == commitIndex {
+	if shaIndex == branchIndex {
 		return nil
 	}
+
+	sha = records[shaIndex-1].FeatureSHA
+	branch = records[branchIndex-1].MainReviewBranch()
 
 	if err := git.SwitchBranch(cmd.Context(), branch, sha); err != nil {
 		return err

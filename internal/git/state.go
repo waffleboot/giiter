@@ -77,6 +77,11 @@ func (r *records) matchCommitsAndBranches(ctx context.Context, branches []Review
 			return nil, errLazy
 		}
 
+		commit, err := FindCommit(ctx, reviewSHA)
+		if err != nil {
+			return nil, err
+		}
+
 		diffHash, err := diffHash(ctx, reviewSHA)
 		if err != nil {
 			return nil, err
@@ -90,11 +95,6 @@ func (r *records) matchCommitsAndBranches(ctx context.Context, branches []Review
 			}
 		}
 
-		commit, err := FindCommit(ctx, reviewSHA)
-		if err != nil {
-			return nil, err
-		}
-
 		if app.Config.UseSubjectToMatch {
 			if index, ok := r.subjIndex[commit.Message.Subject]; ok {
 				r.records[index].AddReviewBranch(branch)
@@ -103,21 +103,26 @@ func (r *records) matchCommitsAndBranches(ctx context.Context, branches []Review
 			}
 		}
 
-		record := Record{
-			FeatureSHA: "",
-			ReviewMsg:  commit.Message,
-		}
-
-		record.AddReviewBranch(branch)
-
-		r.shaIndex[reviewSHA] = len(r.records)
-
-		r.records = append(r.records, record)
+		r.addRecord(branch, commit)
 	}
 
 	r.fillNewCommitIDs()
 
 	return r.records, nil
+}
+
+func (r *records) addRecord(branch ReviewBranch, commit *Commit) {
+	record := Record{
+		ReviewBranches: ReviewBranches{
+			ReviewMsg: commit.Message,
+		},
+	}
+
+	record.AddReviewBranch(branch)
+
+	r.shaIndex[commit.SHA] = len(r.records)
+
+	r.records = append(r.records, record)
 }
 
 func AllReviewBranches(ctx context.Context, featureBranch string) (reviewBranches []ReviewBranch, err error) {
