@@ -41,13 +41,28 @@ func listFeatureCommits(cmd *cobra.Command, args []string) error {
 
 		switch {
 		case record.IsNewCommit():
-			fmt.Printf("%d) %s %s %s\n", i+1, MarkNewCommit, record.FeatureSHA, record.FeatureMsg.Subject)
+			fmt.Printf("%d) %s %s %s\n", i+1,
+				MarkNewCommit,
+				record.FeatureSHA,
+				record.FeatureMsg.Subject)
 		case record.IsOldCommit():
-			fmt.Printf("%d) %s %s [%s] %s\n", i+1, MarkOldCommit, record.ReviewBranch.CommitSHA, record.ReviewBranch, record.ReviewMsg.Subject)
+			fmt.Printf("%d) %s %s [%s] %s\n", i+1,
+				MarkOldCommit,
+				record.ReviewBranch.CommitSHA,
+				record.ReviewBranch,
+				record.ReviewMsg.Subject)
 		case record.MatchedCommit():
-			fmt.Printf("%d) %s %s [%s] %s\n", i+1, MarkOkCommit, record.FeatureSHA, record.ReviewBranch, record.FeatureMsg.Subject)
+			fmt.Printf("%d) %s %s [%s] %s\n", i+1,
+				MarkOkCommit,
+				record.FeatureSHA,
+				record.ReviewBranch,
+				record.FeatureMsg.Subject)
 		default:
-			fmt.Printf("%d) %s %s [%s] %s\n", i+1, MarkSwitchCommit, record.FeatureSHA, record.ReviewBranch, record.FeatureMsg.Subject)
+			fmt.Printf("%d) %s %s [%s] %s\n", i+1,
+				MarkSwitchCommit,
+				record.FeatureSHA,
+				record.ReviewBranch,
+				record.FeatureMsg.Subject)
 		}
 	}
 
