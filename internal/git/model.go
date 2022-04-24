@@ -27,7 +27,7 @@ type reviewBranch struct {
 type Record struct {
 	NewID          int
 	FeatureSHA     string
-	FeatureMsg     Message
+	featureMsg     Message
 	reviewBranches reviewBranches
 }
 
@@ -75,7 +75,7 @@ func (r *Record) CommitSHA() string {
 
 func (r *Record) CommitMessage() Message {
 	if r.FeatureSHA != "" {
-		return r.FeatureMsg
+		return r.featureMsg
 	}
 
 	return r.reviewBranches.reviewMsg
@@ -83,13 +83,13 @@ func (r *Record) CommitMessage() Message {
 
 func (r *Record) switchBranch() {
 	r.reviewBranches.commitSHA = r.FeatureSHA
-	r.reviewBranches.reviewMsg = r.FeatureMsg
+	r.reviewBranches.reviewMsg = r.featureMsg
 }
 
 func newRecord(commit *commit) Record {
 	return Record{
 		FeatureSHA: commit.SHA,
-		FeatureMsg: commit.Message,
+		featureMsg: commit.Message,
 	}
 }
 
