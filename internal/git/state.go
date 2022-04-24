@@ -10,6 +10,10 @@ import (
 	"github.com/waffleboot/giiter/internal/app"
 )
 
+const (
+	Prefix = "review/"
+)
+
 type records struct {
 	records   []Record
 	shaIndex  map[string]int
@@ -115,7 +119,7 @@ func (r *records) addReviewRecord(branch reviewBranch, commit *commit) {
 }
 
 func AllReviewBranches(ctx context.Context, featureBranch string) (result []reviewBranch, err error) {
-	branchPrefix := fmt.Sprintf("review/%s/", featureBranch)
+	branchPrefix := fmt.Sprintf(Prefix+"%s/", featureBranch)
 
 	branches, err := AllBranches(ctx)
 	if err != nil {
