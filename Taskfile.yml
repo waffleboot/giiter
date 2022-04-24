@@ -1,0 +1,10 @@
+version: '3'
+
+tasks:
+  default:
+    silent: true
+    cmds:
+      - go build -o giiter ./cmd/giiter
+  lint:
+    cmds:
+      - golangci-lint run
