@@ -44,8 +44,10 @@ func Refresh(ctx context.Context, baseBranch, featureBranch string) ([]Record, e
 			if err := deleteReviewBranches(ctx, record); err != nil {
 				return nil, err
 			}
+
 			continue
 		}
+
 		records[j] = record
 		j++
 	}
