@@ -46,17 +46,10 @@ func showDiff(cmd *cobra.Command, args []string) error {
 
 	record := records[shaIndex-1]
 
-	lines, err := git.Diff(cmd.Context(), record.CommitSHA())
-	if err != nil {
+	fmt.Println(Yellow + "commit " + record.CommitSHA() + " message " + record.CommitMessage().Subject + Reset)
+
+	if err := git.Diff(cmd.Context(), record.CommitSHA(), args[1:]...); err != nil {
 		return err
-	}
-
-	fmt.Printf("[%s%s%s] %s%s%s\n",
-		Green, record.CommitSHA(), Reset,
-		Yellow, record.CommitMessage().Subject, Reset)
-
-	for _, line := range lines {
-		fmt.Println(line)
 	}
 
 	return nil

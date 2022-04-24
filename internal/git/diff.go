@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/waffleboot/giiter/internal/app"
@@ -78,6 +80,13 @@ func diffHash(ctx context.Context, sha string) (nullHash, error) {
 	return nullHash{hash: strSum, valid: true}, nil
 }
 
-func Diff(ctx context.Context, commitSHA string) ([]string, error) {
-	return run(ctx, "diff", commitSHA+"~.."+commitSHA)
+func Diff(ctx context.Context, commitSHA string, args ...string) error {
+	cmdArgs := []string{"diff", commitSHA + "~.." + commitSHA}
+
+	cmd := exec.CommandContext(ctx, "git", append(cmdArgs, args...)...)
+
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+
+	return cmd.Run()
 }
