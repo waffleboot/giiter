@@ -33,7 +33,7 @@ type Record struct {
 
 type reviewBranches struct {
 	CommitSHA string
-	ReviewMsg Message
+	reviewMsg Message
 	branches  []reviewBranch
 }
 
@@ -88,7 +88,7 @@ func (r *Record) CommitMessage() Message {
 	if r.FeatureSHA != "" {
 		return r.FeatureMsg
 	}
-	return r.reviewBranches.ReviewMsg
+	return r.reviewBranches.reviewMsg
 }
 
 func (r *reviewBranches) reviewBranchNames() []string {
