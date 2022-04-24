@@ -42,7 +42,7 @@ func listFeatureCommits(cmd *cobra.Command, args []string) error {
 
 		commitSHA := record.CommitSHA()
 		commitMsg := Yellow + record.CommitMessage().Subject + Reset
-		reviewBranches := strings.Join(record.ReviewBranchNames(), ",")
+		reviewBranches := strings.Join(record.ReviewBranchNamesForUI(), ",")
 
 		switch {
 		case record.IsNewCommit():
