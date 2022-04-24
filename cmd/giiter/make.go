@@ -29,7 +29,7 @@ func makeReviewBranches(cmd *cobra.Command, args []string) error {
 
 	for i := range records {
 		if records[i].HasReview() {
-			prevBranch, err = records[i].ReviewBranches.AnyReviewBranch()
+			prevBranch, err = records[i].AnyReviewBranch()
 			if err != nil {
 				return fmt.Errorf("error on record %d: %s", i+1, err)
 			}

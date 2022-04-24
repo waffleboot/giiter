@@ -68,7 +68,7 @@ func (r *records) matchCommitsAndBranches(ctx context.Context, branches []Review
 
 		reviewSHA := branch.branch.CommitSHA
 		if index, ok := r.shaIndex[reviewSHA]; ok {
-			r.records[index].ReviewBranches.AddReviewBranch(branch)
+			r.records[index].reviewBranches.AddReviewBranch(branch)
 
 			continue
 		}
@@ -89,7 +89,7 @@ func (r *records) matchCommitsAndBranches(ctx context.Context, branches []Review
 
 		if diffHash.valid {
 			if index, ok := r.diffIndex[diffHash.hash]; ok {
-				r.records[index].ReviewBranches.AddReviewBranch(branch)
+				r.records[index].reviewBranches.AddReviewBranch(branch)
 
 				continue
 			}
@@ -97,7 +97,7 @@ func (r *records) matchCommitsAndBranches(ctx context.Context, branches []Review
 
 		if app.Config.UseSubjectToMatch {
 			if index, ok := r.subjIndex[commit.Message.Subject]; ok {
-				r.records[index].ReviewBranches.AddReviewBranch(branch)
+				r.records[index].reviewBranches.AddReviewBranch(branch)
 
 				continue
 			}
@@ -113,12 +113,12 @@ func (r *records) matchCommitsAndBranches(ctx context.Context, branches []Review
 
 func (r *records) addRecord(branch ReviewBranch, commit *Commit) {
 	record := Record{
-		ReviewBranches: ReviewBranches{
+		reviewBranches: ReviewBranches{
 			ReviewMsg: commit.Message,
 		},
 	}
 
-	record.ReviewBranches.AddReviewBranch(branch)
+	record.reviewBranches.AddReviewBranch(branch)
 
 	r.shaIndex[commit.SHA] = len(r.records)
 
@@ -177,8 +177,8 @@ func (r *records) fillNewCommitIDs() {
 	var maxID int
 
 	for i := range r.records {
-		if r.records[i].ReviewBranches.MaxID() > maxID {
-			maxID = r.records[i].ReviewBranches.MaxID()
+		if r.records[i].reviewBranches.MaxID() > maxID {
+			maxID = r.records[i].reviewBranches.MaxID()
 		}
 	}
 

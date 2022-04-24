@@ -28,7 +28,7 @@ type Record struct {
 	NewID          int
 	FeatureSHA     string
 	FeatureMsg     Message
-	ReviewBranches ReviewBranches
+	reviewBranches ReviewBranches
 }
 
 type ReviewBranches struct {
@@ -38,11 +38,11 @@ type ReviewBranches struct {
 }
 
 func (r *Record) HasReview() bool {
-	return r.ReviewBranches.CommitSHA != ""
+	return r.reviewBranches.CommitSHA != ""
 }
 
 func (r *Record) IsNewCommit() bool {
-	return r.ReviewBranches.CommitSHA == ""
+	return r.reviewBranches.CommitSHA == ""
 }
 
 func (r *Record) IsOldCommit() bool {
@@ -50,7 +50,7 @@ func (r *Record) IsOldCommit() bool {
 }
 
 func (r *Record) MatchedCommit() bool {
-	return r.FeatureSHA == r.ReviewBranches.CommitSHA
+	return r.FeatureSHA == r.reviewBranches.CommitSHA
 }
 
 func (r *ReviewBranches) AddReviewBranch(branch ReviewBranch) {
@@ -69,7 +69,29 @@ func (r *ReviewBranches) MaxID() int {
 	return maxID
 }
 
-func (r *ReviewBranches) ReviewBranchNames() []string {
+func (r *Record) ReviewBranchNames() []string {
+	return r.reviewBranches.reviewBranchNames()
+}
+
+func (r *Record) AnyReviewBranch() (string, error) {
+	return r.reviewBranches.anyReviewBranch()
+}
+
+func (r *Record) CommitSHA() string {
+	if r.FeatureSHA != "" {
+		return r.FeatureSHA
+	}
+	return r.reviewBranches.CommitSHA
+}
+
+func (r *Record) CommitMessage() Message {
+	if r.FeatureSHA != "" {
+		return r.FeatureMsg
+	}
+	return r.reviewBranches.ReviewMsg
+}
+
+func (r *ReviewBranches) reviewBranchNames() []string {
 	a := make([]string, 0, len(r.ReviewBranches))
 	for _, branch := range r.ReviewBranches {
 		a = append(a, branch.BranchName())
@@ -78,7 +100,7 @@ func (r *ReviewBranches) ReviewBranchNames() []string {
 	return a
 }
 
-func (r *ReviewBranches) AnyReviewBranch() (string, error) {
+func (r *ReviewBranches) anyReviewBranch() (string, error) {
 	if len(r.ReviewBranches) > 1 {
 		return "", errors.New("unable to choose any review branch")
 	}
