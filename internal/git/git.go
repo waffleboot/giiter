@@ -140,7 +140,7 @@ func SwitchBranch(ctx context.Context, branch, commit string) error {
 	return err
 }
 
-func FindCommit(ctx context.Context, sha string) (*Commit, error) {
+func FindCommit(ctx context.Context, sha string) (*commit, error) {
 	output, err := run(ctx, "log", "--pretty=format:%s%n%b", sha, "-1")
 	if err != nil {
 		return nil, err
@@ -151,7 +151,7 @@ func FindCommit(ctx context.Context, sha string) (*Commit, error) {
 		body = strings.Join(output[1:], "\n")
 	}
 
-	commit := &Commit{
+	commit := &commit{
 		SHA: sha,
 		Message: Message{
 			Subject:     output[0],

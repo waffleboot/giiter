@@ -44,12 +44,12 @@ func makeReviewBranches(cmd *cobra.Command, args []string) error {
 			title += app.Config.MergeRequestPrefix + ": "
 		}
 
-		title += records[i].FeatureMsg.Subject
+		title += records[i].CommitMessage().Subject
 
 		if err := git.CreateBranch(
 			cmd.Context(),
 			git.Branch{
-				CommitSHA:  records[i].FeatureSHA,
+				CommitSHA:  records[i].CommitSHA(),
 				BranchName: newBranch,
 			}); err != nil {
 			return err
@@ -61,7 +61,7 @@ func makeReviewBranches(cmd *cobra.Command, args []string) error {
 				Title:        title,
 				SourceBranch: newBranch,
 				TargetBranch: prevBranch,
-				Description:  records[i].FeatureMsg.Description,
+				Description:  records[i].CommitMessage().Description,
 			}); err != nil {
 			return err
 		}

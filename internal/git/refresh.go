@@ -17,13 +17,12 @@ func Refresh(ctx context.Context, baseBranch, featureBranch string) ([]Record, e
 		}
 
 		for _, branch := range record.ReviewBranchNames() {
-			if errSwitch := SwitchBranch(ctx, branch, record.FeatureSHA); errSwitch != nil {
+			if errSwitch := SwitchBranch(ctx, branch, record.featureSHA); errSwitch != nil {
 				return nil, errSwitch
 			}
 		}
 
-		records[i].ReviewBranches.CommitSHA = record.FeatureSHA
-		records[i].ReviewMsg = record.FeatureMsg
+		records[i].switchBranch()
 	}
 
 	// если хотя бы один новый коммит не сопоставленный остался, то заброшенные review ветки не удаляем
@@ -41,7 +40,7 @@ func Refresh(ctx context.Context, baseBranch, featureBranch string) ([]Record, e
 	newRecords := make([]Record, 0, len(records))
 
 	for i := range records {
-		if records[i].FeatureSHA != "" {
+		if records[i].featureSHA != "" { // TODO may be !IsOldCommit
 			newRecords = append(newRecords, records[i])
 
 			continue
