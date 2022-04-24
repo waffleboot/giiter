@@ -1,5 +1,9 @@
 package git
 
+import (
+	"errors"
+)
+
 type Message struct {
 	Subject     string
 	Description string
@@ -61,6 +65,7 @@ func (r *ReviewBranches) MaxID() int {
 			maxID = branch.ID
 		}
 	}
+
 	return maxID
 }
 
@@ -69,9 +74,14 @@ func (r *ReviewBranches) ReviewBranchNames() []string {
 	for _, branch := range r.ReviewBranches {
 		a = append(a, branch.BranchName)
 	}
+
 	return a
 }
 
-func (r *ReviewBranches) AnyReviewBranch() string {
-	return r.ReviewBranches[0].BranchName
+func (r *ReviewBranches) AnyReviewBranch() (string, error) {
+	if len(r.ReviewBranches) > 1 {
+		return "", errors.New("unable to choose any review branch")
+	}
+
+	return r.ReviewBranches[0].BranchName, nil
 }

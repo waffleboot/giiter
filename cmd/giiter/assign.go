@@ -55,7 +55,11 @@ func assign(cmd *cobra.Command, args []string) error {
 	}
 
 	featureSHA := records[shaIndex-1].FeatureSHA
-	branchName := records[branchIndex-1].ReviewBranch.BranchName
+
+	branchName, err := records[branchIndex-1].AnyReviewBranch()
+	if err != nil {
+		return err
+	}
 
 	if err := git.SwitchBranch(cmd.Context(), branchName, featureSHA); err != nil {
 		return err
