@@ -41,7 +41,7 @@ func listFeatureCommits(cmd *cobra.Command, args []string) error {
 		record := records[i]
 
 		commitSHA := record.CommitSHA()
-		commitMsg := record.CommitMessage().Subject
+		commitMsg := Yellow + record.CommitMessage().Subject + Reset
 		reviewBranches := strings.Join(record.ReviewBranchNames(), ",")
 
 		switch {
