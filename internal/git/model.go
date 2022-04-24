@@ -20,7 +20,7 @@ type Branch struct {
 }
 
 type ReviewBranch struct {
-	ID     int
+	id     int
 	branch Branch
 }
 
@@ -61,8 +61,8 @@ func (r *ReviewBranches) AddReviewBranch(branch ReviewBranch) {
 func (r *ReviewBranches) MaxID() int {
 	var maxID int
 	for _, branch := range r.ReviewBranches {
-		if branch.ID > maxID {
-			maxID = branch.ID
+		if branch.id > maxID {
+			maxID = branch.id
 		}
 	}
 

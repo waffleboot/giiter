@@ -146,7 +146,7 @@ func AllReviewBranches(ctx context.Context, featureBranch string) (result []Revi
 		}
 
 		result = append(result, ReviewBranch{
-			ID:     id,
+			id:     id,
 			branch: branch,
 		})
 	}
