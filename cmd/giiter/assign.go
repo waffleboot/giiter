@@ -61,7 +61,7 @@ func assign(cmd *cobra.Command, args []string) error {
 
 	featureSHA := records[shaIndex-1].FeatureSHA
 
-	branchName, err := records[branchIndex-1].AnyReviewBranch()
+	branchName, err := records[branchIndex-1].ReviewBranches.AnyReviewBranch()
 	if err != nil {
 		return err
 	}

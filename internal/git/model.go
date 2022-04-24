@@ -25,10 +25,10 @@ type ReviewBranch struct {
 }
 
 type Record struct {
-	NewID      int
-	FeatureSHA string
-	FeatureMsg Message
-	ReviewBranches
+	NewID          int
+	FeatureSHA     string
+	FeatureMsg     Message
+	ReviewBranches ReviewBranches
 }
 
 type ReviewBranches struct {

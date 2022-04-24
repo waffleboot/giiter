@@ -16,14 +16,14 @@ func Refresh(ctx context.Context, baseBranch, featureBranch string) ([]Record, e
 			continue
 		}
 
-		for _, branch := range record.ReviewBranchNames() {
+		for _, branch := range record.ReviewBranches.ReviewBranchNames() {
 			if errSwitch := SwitchBranch(ctx, branch, record.FeatureSHA); errSwitch != nil {
 				return nil, errSwitch
 			}
 		}
 
 		records[i].ReviewBranches.CommitSHA = record.FeatureSHA
-		records[i].ReviewMsg = record.FeatureMsg
+		records[i].ReviewBranches.ReviewMsg = record.FeatureMsg
 	}
 
 	// если хотя бы один новый коммит не сопоставленный остался, то заброшенные review ветки не удаляем
@@ -47,7 +47,7 @@ func Refresh(ctx context.Context, baseBranch, featureBranch string) ([]Record, e
 			continue
 		}
 
-		for _, branch := range records[i].ReviewBranchNames() {
+		for _, branch := range records[i].ReviewBranches.ReviewBranchNames() {
 			if err := DeleteBranch(ctx, branch); err != nil {
 				return nil, err
 			}

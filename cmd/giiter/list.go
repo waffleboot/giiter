@@ -50,19 +50,19 @@ func listFeatureCommits(cmd *cobra.Command, args []string) error {
 			fmt.Printf("%d) %s %s [%s] %s\n", i+1,
 				MarkOldCommit,
 				record.ReviewBranches.CommitSHA,
-				strings.Join(record.ReviewBranchNames(), ","),
-				record.ReviewMsg.Subject)
+				strings.Join(record.ReviewBranches.ReviewBranchNames(), ","),
+				record.ReviewBranches.ReviewMsg.Subject)
 		case record.MatchedCommit():
 			fmt.Printf("%d) %s %s [%s] %s\n", i+1,
 				MarkOkCommit,
 				record.FeatureSHA,
-				strings.Join(record.ReviewBranchNames(), ","),
+				strings.Join(record.ReviewBranches.ReviewBranchNames(), ","),
 				record.FeatureMsg.Subject)
 		default:
 			fmt.Printf("%d) %s %s [%s] %s\n", i+1,
 				MarkSwitchCommit,
 				record.FeatureSHA,
-				strings.Join(record.ReviewBranchNames(), ","),
+				strings.Join(record.ReviewBranches.ReviewBranchNames(), ","),
 				record.FeatureMsg.Subject)
 		}
 	}
