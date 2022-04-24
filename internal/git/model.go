@@ -29,12 +29,12 @@ type Record struct {
 	featureSHA     string
 	featureMsg     Message
 	reviewSHA      string
+	reviewMsg      Message
 	reviewBranches reviewBranches
 }
 
 type reviewBranches struct {
-	reviewMsg Message
-	branches  []reviewBranch
+	branches []reviewBranch
 }
 
 func (r *Record) HasReview() bool {
@@ -79,12 +79,12 @@ func (r *Record) CommitMessage() Message {
 		return r.featureMsg
 	}
 
-	return r.reviewBranches.reviewMsg
+	return r.reviewMsg
 }
 
 func (r *Record) switchBranch() {
 	r.reviewSHA = r.featureSHA
-	r.reviewBranches.reviewMsg = r.featureMsg
+	r.reviewMsg = r.featureMsg
 }
 
 func newRecord(commit *commit) Record {
@@ -97,9 +97,9 @@ func newRecord(commit *commit) Record {
 func newReviewRecord(commit *commit, branch reviewBranch) Record {
 	return Record{
 		reviewSHA: commit.SHA,
+		reviewMsg: commit.Message,
 		reviewBranches: reviewBranches{
-			reviewMsg: commit.Message,
-			branches:  []reviewBranch{branch},
+			branches: []reviewBranch{branch},
 		},
 	}
 }
