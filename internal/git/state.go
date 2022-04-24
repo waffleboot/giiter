@@ -111,7 +111,7 @@ func (r *records) matchCommitsAndBranches(ctx context.Context, branches []review
 	return r.records, nil
 }
 
-func (r *records) addRecord(branch reviewBranch, commit *Commit) {
+func (r *records) addRecord(branch reviewBranch, commit *commit) {
 	record := Record{
 		reviewBranches: reviewBranches{
 			reviewMsg: commit.Message,

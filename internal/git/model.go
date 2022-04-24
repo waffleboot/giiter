@@ -9,7 +9,7 @@ type Message struct {
 	Description string
 }
 
-type Commit struct {
+type commit struct {
 	SHA     string
 	Message Message
 }
