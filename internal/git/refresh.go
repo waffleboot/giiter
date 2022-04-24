@@ -22,7 +22,7 @@ func Refresh(ctx context.Context, baseBranch, featureBranch string) ([]Record, e
 			}
 		}
 
-		records[i].reviewBranches.CommitSHA = record.FeatureSHA
+		records[i].reviewBranches.commitSHA = record.FeatureSHA
 		records[i].reviewBranches.reviewMsg = record.FeatureMsg
 	}
 
