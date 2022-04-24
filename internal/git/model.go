@@ -28,21 +28,17 @@ type Record struct {
 	NewID          int
 	featureSHA     string
 	featureMsg     Message
-	reviewBranches reviewBranches
-}
-
-type reviewBranches struct {
-	commitSHA string
-	reviewMsg Message
-	branches  []reviewBranch
+	reviewSHA      string
+	reviewMsg      Message
+	reviewBranches []reviewBranch
 }
 
 func (r *Record) HasReview() bool {
-	return r.reviewBranches.commitSHA != ""
+	return r.reviewSHA != ""
 }
 
 func (r *Record) IsNewCommit() bool {
-	return r.reviewBranches.commitSHA == ""
+	return r.reviewSHA == ""
 }
 
 func (r *Record) IsOldCommit() bool {
@@ -50,19 +46,29 @@ func (r *Record) IsOldCommit() bool {
 }
 
 func (r *Record) MatchedCommit() bool {
-	return r.featureSHA == r.reviewBranches.commitSHA
+	return r.featureSHA == r.reviewSHA
 }
 
 func (r *Record) addReviewBranch(branch reviewBranch) {
-	r.reviewBranches.addReviewBranch(branch)
+	r.reviewSHA = branch.branch.CommitSHA
+	r.reviewBranches = append(r.reviewBranches, branch)
 }
 
 func (r *Record) ReviewBranchNames() []string {
-	return r.reviewBranches.reviewBranchNames()
+	a := make([]string, 0, len(r.reviewBranches))
+	for _, branch := range r.reviewBranches {
+		a = append(a, branch.BranchName())
+	}
+
+	return a
 }
 
 func (r *Record) AnyReviewBranch() (string, error) {
-	return r.reviewBranches.anyReviewBranch()
+	if len(r.reviewBranches) > 1 {
+		return "", errors.New("unable to choose any review branch")
+	}
+
+	return r.reviewBranches[0].BranchName(), nil
 }
 
 func (r *Record) CommitSHA() string {
@@ -70,7 +76,7 @@ func (r *Record) CommitSHA() string {
 		return r.featureSHA
 	}
 
-	return r.reviewBranches.commitSHA
+	return r.reviewSHA
 }
 
 func (r *Record) CommitMessage() Message {
@@ -78,12 +84,12 @@ func (r *Record) CommitMessage() Message {
 		return r.featureMsg
 	}
 
-	return r.reviewBranches.reviewMsg
+	return r.reviewMsg
 }
 
 func (r *Record) switchBranch() {
-	r.reviewBranches.commitSHA = r.featureSHA
-	r.reviewBranches.reviewMsg = r.featureMsg
+	r.reviewSHA = r.featureSHA
+	r.reviewMsg = r.featureMsg
 }
 
 func newRecord(commit *commit) Record {
@@ -95,11 +101,9 @@ func newRecord(commit *commit) Record {
 
 func newReviewRecord(commit *commit, branch reviewBranch) Record {
 	return Record{
-		reviewBranches: reviewBranches{
-			commitSHA: commit.SHA,
-			reviewMsg: commit.Message,
-			branches:  []reviewBranch{branch},
-		},
+		reviewSHA:      commit.SHA,
+		reviewMsg:      commit.Message,
+		reviewBranches: []reviewBranch{branch},
 	}
 }
 
@@ -110,35 +114,13 @@ func newReviewBranch(id int, branch Branch) reviewBranch {
 	}
 }
 
-func (r *reviewBranches) reviewBranchNames() []string {
-	a := make([]string, 0, len(r.branches))
-	for _, branch := range r.branches {
-		a = append(a, branch.BranchName())
-	}
-
-	return a
-}
-
-func (r *reviewBranches) anyReviewBranch() (string, error) {
-	if len(r.branches) > 1 {
-		return "", errors.New("unable to choose any review branch")
-	}
-
-	return r.branches[0].BranchName(), nil
-}
-
 func (r *reviewBranch) BranchName() string {
 	return r.branch.BranchName
 }
 
-func (r *reviewBranches) addReviewBranch(branch reviewBranch) {
-	r.commitSHA = branch.branch.CommitSHA
-	r.branches = append(r.branches, branch)
-}
-
-func (r *reviewBranches) MaxID() int {
+func (r *Record) MaxID() int {
 	var maxID int
-	for _, branch := range r.branches {
+	for _, branch := range r.reviewBranches {
 		if branch.id > maxID {
 			maxID = branch.id
 		}
