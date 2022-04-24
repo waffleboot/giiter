@@ -25,6 +25,8 @@ func makeReviewBranches(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	prevBranch := _baseBranch
+
 	for i := range records {
 		if records[i].HasReview() {
 			continue
