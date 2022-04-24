@@ -6,9 +6,8 @@ import (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:     "delete",
-	Short:   "delete review branches",
-	Aliases: []string{"d"},
+	Use:   "delete",
+	Short: "delete review branches",
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
 		_featureBranch, err = git.FindFeatureBranch(cmd.Context(), _featureBranch)
 
