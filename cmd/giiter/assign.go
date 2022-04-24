@@ -42,6 +42,9 @@ func assign(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	shaIndex--
+	branchIndex--
+
 	switch {
 	case shaIndex < 0:
 		return errors.New("commit position is negative")
@@ -59,9 +62,9 @@ func assign(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not reassign commit %s without review", branchPos)
 	}
 
-	featureSHA := records[shaIndex-1].CommitSHA()
+	featureSHA := records[shaIndex].CommitSHA()
 
-	branchName, err := records[branchIndex-1].AnyReviewBranch()
+	branchName, err := records[branchIndex].AnyReviewBranch()
 	if err != nil {
 		return err
 	}
