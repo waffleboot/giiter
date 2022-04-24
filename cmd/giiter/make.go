@@ -49,7 +49,7 @@ func makeReviewBranches(cmd *cobra.Command, args []string) error {
 		if err := git.CreateBranch(
 			cmd.Context(),
 			git.Branch{
-				CommitSHA:  records[i].FeatureSHA,
+				CommitSHA:  records[i].CommitSHA(),
 				BranchName: newBranch,
 			}); err != nil {
 			return err

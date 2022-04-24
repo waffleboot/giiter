@@ -59,7 +59,7 @@ func assign(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not reassign commit %s without review", branchPos)
 	}
 
-	featureSHA := records[shaIndex-1].FeatureSHA
+	featureSHA := records[shaIndex-1].CommitSHA()
 
 	branchName, err := records[branchIndex-1].AnyReviewBranch()
 	if err != nil {

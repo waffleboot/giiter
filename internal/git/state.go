@@ -145,7 +145,7 @@ func (r *records) lazyDiffHashes(ctx context.Context) error {
 		r.diffIndex = make(map[string]int)
 
 		for i := range r.records {
-			diffHash, err := diffHash(ctx, r.records[i].FeatureSHA)
+			diffHash, err := diffHash(ctx, r.records[i].CommitSHA())
 			if err != nil {
 				return err
 			}
