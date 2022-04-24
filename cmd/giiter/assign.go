@@ -57,25 +57,6 @@ func assign(cmd *cobra.Command, args []string) error {
 	featureSHA := records[shaIndex-1].FeatureSHA
 	branchName := records[branchIndex-1].ReviewBranch.BranchName
 
-	reviewIndex := -1
-	commitIndex := -1
-
-	for i := range records {
-		if records[i].ReviewBranch.BranchName == branchName {
-			reviewIndex = i
-		}
-
-		if records[i].FeatureSHA == featureSHA {
-			commitIndex = i
-		}
-	}
-
-	// TODO зачем это сделано?
-
-	if reviewIndex < 0 || commitIndex < 0 || reviewIndex == commitIndex {
-		return nil
-	}
-
 	if err := git.SwitchBranch(cmd.Context(), branchName, featureSHA); err != nil {
 		return err
 	}
