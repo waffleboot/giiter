@@ -79,5 +79,5 @@ func diffHash(ctx context.Context, sha string) (nullHash, error) {
 }
 
 func Diff(ctx context.Context, commitSHA string) ([]string, error) {
-	return run(ctx, "diff", commitSHA)
+	return run(ctx, "diff", commitSHA+"~.."+commitSHA)
 }
