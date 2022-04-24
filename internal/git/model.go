@@ -46,5 +46,32 @@ func (r *Record) IsOldCommit() bool {
 }
 
 func (r *Record) MatchedCommit() bool {
-	return r.FeatureSHA == r.ReviewBranch.CommitSHA
+	return r.FeatureSHA == r.ReviewBranches.CommitSHA
 }
+
+func (r *ReviewBranches) AddReviewBranch(branch ReviewBranch) {
+	r.CommitSHA = branch.CommitSHA
+	r.ReviewBranches = append(r.ReviewBranches, branch)
+}
+
+func (r *ReviewBranches) MaxID() int {
+	var maxID int
+	for _, branch := range r.ReviewBranches {
+		if branch.ID > maxID {
+			maxID = branch.ID
+		}
+	}
+	return maxID
+}
+
+func (r *ReviewBranches) ReviewBranchNames() []string {
+	a := make([]string, 0, len(r.ReviewBranches))
+	for _, branch := range r.ReviewBranches {
+		a = append(a, branch.BranchName)
+	}
+	return a
+}
+
+// func (r *ReviewBranches) MainReviewBranch() string {
+// 	return r.ReviewBranches[0].BranchName
+// }
