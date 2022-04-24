@@ -46,12 +46,20 @@ func Refresh(ctx context.Context, baseBranch, featureBranch string) ([]Record, e
 			continue
 		}
 
-		for _, branch := range records[i].ReviewBranchNames() {
-			if err := DeleteBranch(ctx, branch); err != nil {
-				return nil, err
-			}
+		if err := deleteReviewBranches(ctx, records[i]); err != nil {
+			return nil, err
 		}
 	}
 
 	return newRecords, nil
+}
+
+func deleteReviewBranches(ctx context.Context, record Record) error {
+	for _, branch := range record.ReviewBranchNames() {
+		if err := DeleteBranch(ctx, branch); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
