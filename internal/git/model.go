@@ -81,6 +81,7 @@ func (r *Record) CommitSHA() string {
 	if r.FeatureSHA != "" {
 		return r.FeatureSHA
 	}
+
 	return r.reviewBranches.commitSHA
 }
 
@@ -88,7 +89,13 @@ func (r *Record) CommitMessage() Message {
 	if r.FeatureSHA != "" {
 		return r.FeatureMsg
 	}
+
 	return r.reviewBranches.reviewMsg
+}
+
+func (r *Record) switchBranch() {
+	r.reviewBranches.commitSHA = r.FeatureSHA
+	r.reviewBranches.reviewMsg = r.FeatureMsg
 }
 
 func (r *reviewBranches) reviewBranchNames() []string {

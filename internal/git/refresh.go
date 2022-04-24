@@ -22,8 +22,7 @@ func Refresh(ctx context.Context, baseBranch, featureBranch string) ([]Record, e
 			}
 		}
 
-		records[i].reviewBranches.commitSHA = record.FeatureSHA
-		records[i].reviewBranches.reviewMsg = record.FeatureMsg
+		records[i].switchBranch()
 	}
 
 	// если хотя бы один новый коммит не сопоставленный остался, то заброшенные review ветки не удаляем
