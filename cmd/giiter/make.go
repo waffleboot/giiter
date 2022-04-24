@@ -32,11 +32,6 @@ func makeReviewBranches(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		prevBranch := _baseBranch
-		if i > 0 {
-			prevBranch = records[i-1].ReviewBranch.BranchName
-		}
-
 		newBranch := fmt.Sprintf("review/%s/%d", _featureBranch, records[i].NewID)
 
 		title := "Draft: "
