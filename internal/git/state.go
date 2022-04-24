@@ -65,7 +65,7 @@ func (r *records) matchCommitsAndBranches(ctx context.Context, branches []review
 
 		reviewSHA := branch.branch.CommitSHA
 		if index, ok := r.shaIndex[reviewSHA]; ok {
-			r.records[index].reviewBranches.AddReviewBranch(branch)
+			r.records[index].addReviewBranch(branch)
 
 			continue
 		}
@@ -86,7 +86,7 @@ func (r *records) matchCommitsAndBranches(ctx context.Context, branches []review
 
 		if diffHash.valid {
 			if index, ok := r.diffIndex[diffHash.hash]; ok {
-				r.records[index].reviewBranches.AddReviewBranch(branch)
+				r.records[index].addReviewBranch(branch)
 
 				continue
 			}
@@ -94,7 +94,7 @@ func (r *records) matchCommitsAndBranches(ctx context.Context, branches []review
 
 		if app.Config.UseSubjectToMatch {
 			if index, ok := r.subjIndex[commit.Message.Subject]; ok {
-				r.records[index].reviewBranches.AddReviewBranch(branch)
+				r.records[index].addReviewBranch(branch)
 
 				continue
 			}

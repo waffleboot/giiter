@@ -53,19 +53,8 @@ func (r *Record) MatchedCommit() bool {
 	return r.FeatureSHA == r.reviewBranches.commitSHA
 }
 
-func (r *reviewBranches) AddReviewBranch(branch reviewBranch) {
-	r.branches = append(r.branches, branch)
-}
-
-func (r *reviewBranches) MaxID() int {
-	var maxID int
-	for _, branch := range r.branches {
-		if branch.id > maxID {
-			maxID = branch.id
-		}
-	}
-
-	return maxID
+func (r *Record) addReviewBranch(branch reviewBranch) {
+	r.reviewBranches.addReviewBranch(branch)
 }
 
 func (r *Record) ReviewBranchNames() []string {
@@ -107,10 +96,17 @@ func newRecord(commit *commit) Record {
 func newReviewRecord(branch reviewBranch, commit *commit) Record {
 	return Record{
 		reviewBranches: reviewBranches{
-			commitSHA: branch.branch.CommitSHA,
+			commitSHA: commit.SHA,
 			reviewMsg: commit.Message,
 			branches:  []reviewBranch{branch},
 		},
+	}
+}
+
+func newReviewBranch(id int, branch Branch) reviewBranch {
+	return reviewBranch{
+		id:     id,
+		branch: branch,
 	}
 }
 
@@ -135,9 +131,17 @@ func (r *reviewBranch) BranchName() string {
 	return r.branch.BranchName
 }
 
-func newReviewBranch(id int, branch Branch) reviewBranch {
-	return reviewBranch{
-		id:     id,
-		branch: branch,
+func (r *reviewBranches) addReviewBranch(branch reviewBranch) {
+	r.branches = append(r.branches, branch)
+}
+
+func (r *reviewBranches) MaxID() int {
+	var maxID int
+	for _, branch := range r.branches {
+		if branch.id > maxID {
+			maxID = branch.id
+		}
 	}
+
+	return maxID
 }
