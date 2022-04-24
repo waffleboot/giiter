@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/waffleboot/giiter/internal/git"
@@ -67,4 +68,12 @@ func listFeatureCommits(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func join(branches []git.ReviewBranch) string {
+	a := make([]string, 0, len(branches))
+	for _, branch := range branches {
+		a = append(a, branch.BranchName)
+	}
+	return strings.Join(a, ",")
 }
