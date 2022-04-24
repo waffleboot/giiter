@@ -21,18 +21,25 @@ type ReviewBranch struct {
 }
 
 type Record struct {
-	ID           int
+	NewID        int
 	FeatureSHA   string
 	FeatureMsg   Message
-	ReviewSHA    string
 	ReviewMsg    Message
-	ReviewBranch string
+	ReviewBranch ReviewBranch
+}
+
+func (r *Record) HasReview() bool {
+	return r.ReviewBranch.CommitSHA != ""
 }
 
 func (r *Record) IsNewCommit() bool {
-	return r.ReviewSHA == ""
+	return r.ReviewBranch.CommitSHA == ""
 }
 
 func (r *Record) IsOldCommit() bool {
 	return r.FeatureSHA == ""
+}
+
+func (r *Record) MatchedCommit() bool {
+	return r.FeatureSHA == r.ReviewBranch.CommitSHA
 }
