@@ -66,7 +66,7 @@ func makeReviewBranches(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		records[i].ReviewBranch.BranchName = newBranch
+		prevBranch = newBranch
 	}
 
 	return listFeatureCommits(cmd, args)
