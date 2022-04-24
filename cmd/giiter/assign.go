@@ -21,14 +21,14 @@ func assign(cmd *cobra.Command, args []string) error {
 		return errors.New("need new commit and old review branch position numbers")
 	}
 
-	sha, branch := args[0], args[1]
+	shaPos, branchPos := args[0], args[1]
 
-	branchIndex, err := strconv.Atoi(branch)
+	branchIndex, err := strconv.Atoi(branchPos)
 	if err != nil {
 		return err
 	}
 
-	shaIndex, err := strconv.Atoi(sha)
+	shaIndex, err := strconv.Atoi(shaPos)
 	if err != nil {
 		return err
 	}
@@ -41,18 +41,18 @@ func assign(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	branch = records[branchIndex-1].ReviewBranch.BranchName
-	sha = records[shaIndex-1].FeatureSHA
+	branchName := records[branchIndex-1].ReviewBranch.BranchName
+	featureSHA := records[shaIndex-1].FeatureSHA
 
 	reviewIndex := -1
 	commitIndex := -1
 
 	for i := range records {
-		if records[i].ReviewBranch.BranchName == branch {
+		if records[i].ReviewBranch.BranchName == branchName {
 			reviewIndex = i
 		}
 
-		if records[i].FeatureSHA == sha {
+		if records[i].FeatureSHA == featureSHA {
 			commitIndex = i
 		}
 	}
@@ -63,7 +63,7 @@ func assign(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	if err := git.SwitchBranch(cmd.Context(), branch, sha); err != nil {
+	if err := git.SwitchBranch(cmd.Context(), branchName, featureSHA); err != nil {
 		return err
 	}
 
