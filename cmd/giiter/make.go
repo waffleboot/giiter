@@ -29,6 +29,8 @@ func makeReviewBranches(cmd *cobra.Command, args []string) error {
 
 	for i := range records {
 		if records[i].HasReview() {
+			prevBranch = records[i].ReviewBranch.BranchName
+
 			continue
 		}
 
