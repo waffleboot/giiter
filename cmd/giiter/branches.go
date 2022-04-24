@@ -20,13 +20,13 @@ var branchesCmd = &cobra.Command{
 }
 
 func showAllBranches(cmd *cobra.Command, args []string) error {
-	branches, err := git.AllReviewBranches(cmd.Context(), _featureBranch)
+	reviewBranches, err := git.AllReviewBranches(cmd.Context(), _featureBranch)
 	if err != nil {
 		return err
 	}
 
-	for i := range branches {
-		fmt.Printf("%s\n", branches[i].BranchName)
+	for _, branch := range reviewBranches {
+		fmt.Printf("%s\n", branch.BranchName())
 	}
 
 	return nil

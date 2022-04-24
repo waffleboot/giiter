@@ -18,13 +18,13 @@ var deleteCmd = &cobra.Command{
 }
 
 func deleteReviewBranches(cmd *cobra.Command, args []string) error {
-	branches, err := git.AllReviewBranches(cmd.Context(), _featureBranch)
+	reviewBranches, err := git.AllReviewBranches(cmd.Context(), _featureBranch)
 	if err != nil {
 		return err
 	}
 
-	for _, branch := range branches {
-		if err := git.DeleteBranch(cmd.Context(), branch.BranchName); err != nil {
+	for _, branch := range reviewBranches {
+		if err := git.DeleteBranch(cmd.Context(), branch.BranchName()); err != nil {
 			return err
 		}
 	}

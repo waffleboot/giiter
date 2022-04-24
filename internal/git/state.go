@@ -66,7 +66,7 @@ func (r *records) matchCommitsAndBranches(ctx context.Context, branches []Review
 	for i := range branches {
 		branch := branches[i]
 
-		reviewSHA := branch.CommitSHA
+		reviewSHA := branch.branch.CommitSHA
 		if index, ok := r.shaIndex[reviewSHA]; ok {
 			r.records[index].AddReviewBranch(branch)
 
@@ -125,7 +125,7 @@ func (r *records) addRecord(branch ReviewBranch, commit *Commit) {
 	r.records = append(r.records, record)
 }
 
-func AllReviewBranches(ctx context.Context, featureBranch string) (reviewBranches []ReviewBranch, err error) {
+func AllReviewBranches(ctx context.Context, featureBranch string) (result []ReviewBranch, err error) {
 	branchPrefix := fmt.Sprintf("review/%s/", featureBranch)
 
 	branches, err := AllBranches(ctx)
@@ -145,9 +145,9 @@ func AllReviewBranches(ctx context.Context, featureBranch string) (reviewBranche
 			return nil, err
 		}
 
-		reviewBranches = append(reviewBranches, ReviewBranch{
+		result = append(result, ReviewBranch{
 			ID:     id,
-			Branch: branch,
+			branch: branch,
 		})
 	}
 
