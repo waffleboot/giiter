@@ -28,21 +28,21 @@ type Record struct {
 	NewID          int
 	featureSHA     string
 	featureMsg     Message
+	reviewSHA      string
 	reviewBranches reviewBranches
 }
 
 type reviewBranches struct {
-	commitSHA string
 	reviewMsg Message
 	branches  []reviewBranch
 }
 
 func (r *Record) HasReview() bool {
-	return r.reviewBranches.commitSHA != ""
+	return r.reviewSHA != ""
 }
 
 func (r *Record) IsNewCommit() bool {
-	return r.reviewBranches.commitSHA == ""
+	return r.reviewSHA == ""
 }
 
 func (r *Record) IsOldCommit() bool {
@@ -50,10 +50,11 @@ func (r *Record) IsOldCommit() bool {
 }
 
 func (r *Record) MatchedCommit() bool {
-	return r.featureSHA == r.reviewBranches.commitSHA
+	return r.featureSHA == r.reviewSHA
 }
 
 func (r *Record) addReviewBranch(branch reviewBranch) {
+	r.reviewSHA = branch.branch.CommitSHA
 	r.reviewBranches.addReviewBranch(branch)
 }
 
@@ -70,7 +71,7 @@ func (r *Record) CommitSHA() string {
 		return r.featureSHA
 	}
 
-	return r.reviewBranches.commitSHA
+	return r.reviewSHA
 }
 
 func (r *Record) CommitMessage() Message {
@@ -82,7 +83,7 @@ func (r *Record) CommitMessage() Message {
 }
 
 func (r *Record) switchBranch() {
-	r.reviewBranches.commitSHA = r.featureSHA
+	r.reviewSHA = r.featureSHA
 	r.reviewBranches.reviewMsg = r.featureMsg
 }
 
@@ -95,8 +96,8 @@ func newRecord(commit *commit) Record {
 
 func newReviewRecord(commit *commit, branch reviewBranch) Record {
 	return Record{
+		reviewSHA: commit.SHA,
 		reviewBranches: reviewBranches{
-			commitSHA: commit.SHA,
 			reviewMsg: commit.Message,
 			branches:  []reviewBranch{branch},
 		},
@@ -132,7 +133,6 @@ func (r *reviewBranch) BranchName() string {
 }
 
 func (r *reviewBranches) addReviewBranch(branch reviewBranch) {
-	r.commitSHA = branch.branch.CommitSHA
 	r.branches = append(r.branches, branch)
 }
 
