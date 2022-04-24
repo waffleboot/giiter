@@ -23,7 +23,7 @@ func assign(cmd *cobra.Command, args []string) error {
 
 	shaPos, branchPos := args[0], args[1]
 
-	branchIndex, err := strconv.Atoi(branchPos)
+	shaIndex, err := strconv.Atoi(shaPos)
 	if err != nil {
 		return err
 	}
