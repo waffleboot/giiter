@@ -72,6 +72,6 @@ func (r *ReviewBranches) ReviewBranchNames() []string {
 	return a
 }
 
-// func (r *ReviewBranches) MainReviewBranch() string {
-// 	return r.ReviewBranches[0].BranchName
-// }
+func (r *ReviewBranches) AnyReviewBranch() string {
+	return r.ReviewBranches[0].BranchName
+}
