@@ -4,17 +4,18 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+
 	"github.com/waffleboot/giiter/internal/app"
 	"github.com/waffleboot/giiter/internal/git"
 )
 
 type makeCommand struct {
-	branches *branches
+	config *git.Config
 }
 
-func makeMakeCommand(branches *branches) *cobra.Command {
+func makeMakeCommand(config *git.Config) *cobra.Command {
 	c := makeCommand{
-		branches: branches,
+		config: config,
 	}
 	cmd := &cobra.Command{
 		Use:     "make",
@@ -29,15 +30,17 @@ func makeMakeCommand(branches *branches) *cobra.Command {
 }
 
 func (c *makeCommand) run(cmd *cobra.Command, args []string) error {
-	records, err := git.Refresh(
-		cmd.Context(),
-		c.branches.baseBranch,
-		c.branches.featureBranch)
+	baseBranch, featureBranch, err := c.config.Branches()
 	if err != nil {
 		return err
 	}
 
-	prevBranch := c.branches.baseBranch
+	records, err := git.Refresh(cmd.Context(), baseBranch, featureBranch)
+	if err != nil {
+		return err
+	}
+
+	prevBranch := baseBranch
 
 	for i := range records {
 		if records[i].HasReview() {
@@ -49,7 +52,7 @@ func (c *makeCommand) run(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		newBranch := fmt.Sprintf(git.Prefix+"%s/%d", c.branches.featureBranch, records[i].NewID)
+		newBranch := fmt.Sprintf(git.Prefix+"%s/%d", featureBranch, records[i].NewID)
 
 		title := "Draft: "
 		if app.Config.MergeRequestPrefix != "" {
@@ -81,5 +84,5 @@ func (c *makeCommand) run(cmd *cobra.Command, args []string) error {
 		prevBranch = newBranch
 	}
 
-	return listFeatureCommits(cmd.Context(), c.branches)
+	return listFeatureCommits(cmd.Context(), c.config)
 }

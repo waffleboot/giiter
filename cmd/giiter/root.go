@@ -4,8 +4,9 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/waffleboot/giiter/internal/app"
 	"gopkg.in/yaml.v2"
+
+	"github.com/waffleboot/giiter/internal/app"
 )
 
 var rootCmd = &cobra.Command{

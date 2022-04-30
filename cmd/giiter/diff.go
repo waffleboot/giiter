@@ -6,30 +6,33 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
 	"github.com/waffleboot/giiter/internal/git"
 )
 
 type diffCommand struct {
-	branches *branches
+	config *git.Config
 }
 
-func makeDiffCommand(branches *branches) *cobra.Command {
+func makeDiffCommand(config *git.Config) *cobra.Command {
 	c := diffCommand{
-		branches: branches,
+		config: config,
 	}
 
 	return &cobra.Command{
 		Use:     "diff",
 		Short:   "diff commit",
 		Aliases: []string{"d"},
+		Args:    cobra.MinimumNArgs(1),
 		// PersistentPreRunE не нужен, см. main
 		RunE: c.run,
 	}
 }
 
 func (c *diffCommand) run(cmd *cobra.Command, args []string) error {
-	if len(args) < 1 {
-		return errors.New("point commit number")
+	baseBranch, featureBranch, err := c.config.Branches()
+	if err != nil {
+		return err
 	}
 
 	shaPos := args[0]
@@ -39,10 +42,7 @@ func (c *diffCommand) run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	records, err := git.State(
-		cmd.Context(),
-		c.branches.baseBranch,
-		c.branches.featureBranch)
+	records, err := git.State(cmd.Context(), baseBranch, featureBranch)
 	if err != nil {
 		return err
 	}

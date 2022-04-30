@@ -2,16 +2,17 @@ package main
 
 import (
 	"github.com/spf13/cobra"
+
 	"github.com/waffleboot/giiter/internal/git"
 )
 
 type rebaseCommand struct {
-	branches *branches
+	config *git.Config
 }
 
-func makeRebaseCommand(branches *branches) *cobra.Command {
+func makeRebaseCommand(config *git.Config) *cobra.Command {
 	c := rebaseCommand{
-		branches: branches,
+		config: config,
 	}
 
 	return &cobra.Command{
@@ -24,5 +25,10 @@ func makeRebaseCommand(branches *branches) *cobra.Command {
 }
 
 func (c *rebaseCommand) run(cmd *cobra.Command, args []string) error {
-	return git.Rebase(cmd.Context(), c.branches.baseBranch, c.branches.featureBranch)
+	baseBranch, featureBranch, err := c.config.Branches()
+	if err != nil {
+		return err
+	}
+
+	return git.Rebase(cmd.Context(), baseBranch, featureBranch)
 }

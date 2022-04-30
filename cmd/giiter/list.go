@@ -6,16 +6,17 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+
 	"github.com/waffleboot/giiter/internal/git"
 )
 
 type listCommand struct {
-	branches *branches
+	config *git.Config
 }
 
-func makeListCommand(branches *branches) *cobra.Command {
+func makeListCommand(config *git.Config) *cobra.Command {
 	c := listCommand{
-		branches: branches,
+		config: config,
 	}
 
 	return &cobra.Command{
@@ -40,14 +41,16 @@ const (
 )
 
 func (c *listCommand) run(cmd *cobra.Command, args []string) error {
-	return listFeatureCommits(cmd.Context(), c.branches)
+	return listFeatureCommits(cmd.Context(), c.config)
 }
 
-func listFeatureCommits(ctx context.Context, c *branches) error {
-	records, err := git.State(
-		ctx,
-		c.baseBranch,
-		c.featureBranch)
+func listFeatureCommits(ctx context.Context, c *git.Config) error {
+	baseBranch, featureBranch, err := c.Branches()
+	if err != nil {
+		return err
+	}
+
+	records, err := git.State(ctx, baseBranch, featureBranch)
 	if err != nil {
 		return err
 	}

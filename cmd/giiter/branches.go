@@ -4,34 +4,42 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+
 	"github.com/waffleboot/giiter/internal/git"
 )
 
 type branchesCommand struct {
-	featureBranch string
+	config *git.Config
 }
 
-func makeBranchesCommand() *cobra.Command {
-	var c branchesCommand
+func makeBranchesCommand(config *git.Config) *cobra.Command {
+	var featureBranch string
+
+	c := branchesCommand{
+		config: config,
+	}
 
 	cmd := &cobra.Command{
 		Use:     "branches",
 		Short:   "show all review branches",
 		Aliases: []string{"b"},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
-			c.featureBranch, err = git.FindFeatureBranch(cmd.Context(), c.featureBranch)
-
-			return
+			return c.config.Add(git.FeatureBranch(featureBranch)).Validate(cmd.Context())
 		},
 		RunE: c.run,
 	}
-	cmd.Flags().StringVarP(&c.featureBranch, "feature", "f", "", "feature branch")
+	cmd.Flags().StringVarP(&featureBranch, "feature", "f", "", "feature branch")
 
 	return cmd
 }
 
 func (c *branchesCommand) run(cmd *cobra.Command, args []string) error {
-	reviewBranches, err := git.AllReviewBranches(cmd.Context(), c.featureBranch)
+	featureBranch, err := c.config.FeatureBranch()
+	if err != nil {
+		return err
+	}
+
+	reviewBranches, err := git.AllReviewBranches(cmd.Context(), featureBranch)
 	if err != nil {
 		return err
 	}

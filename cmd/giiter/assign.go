@@ -11,12 +11,12 @@ import (
 )
 
 type assignCommand struct {
-	branches *branches
+	config *git.Config
 }
 
-func makeAssignCommand(branches *branches) *cobra.Command {
+func makeAssignCommand(config *git.Config) *cobra.Command {
 	c := assignCommand{
-		branches: branches,
+		config: config,
 	}
 
 	return &cobra.Command{
@@ -29,6 +29,11 @@ func makeAssignCommand(branches *branches) *cobra.Command {
 }
 
 func (c *assignCommand) run(cmd *cobra.Command, args []string) error {
+	baseBranch, featureBranch, err := c.config.Branches()
+	if err != nil {
+		return err
+	}
+
 	if len(args) < 2 {
 		return errors.New("need new commit and old review branch position numbers")
 	}
@@ -45,10 +50,7 @@ func (c *assignCommand) run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	records, err := git.State(
-		cmd.Context(),
-		c.branches.baseBranch,
-		c.branches.featureBranch)
+	records, err := git.State(cmd.Context(), baseBranch, featureBranch)
 	if err != nil {
 		return err
 	}
@@ -84,5 +86,5 @@ func (c *assignCommand) run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return listFeatureCommits(cmd.Context(), c.branches)
+	return listFeatureCommits(cmd.Context(), c.config)
 }
