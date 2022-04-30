@@ -5,19 +5,30 @@ import (
 	"github.com/waffleboot/giiter/internal/git"
 )
 
-var deleteCmd = &cobra.Command{
-	Use:   "delete",
-	Short: "delete review branches",
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
-		_featureBranch, err = git.FindFeatureBranch(cmd.Context(), _featureBranch)
-
-		return
-	},
-	RunE: deleteReviewBranches,
+type deleteCommand struct {
+	featureBranch string
 }
 
-func deleteReviewBranches(cmd *cobra.Command, args []string) error {
-	reviewBranches, err := git.AllReviewBranches(cmd.Context(), _featureBranch)
+func makeDeleteCommand() *cobra.Command {
+	var c deleteCommand
+
+	cmd := &cobra.Command{
+		Use:   "delete",
+		Short: "delete review branches",
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
+			c.featureBranch, err = git.FindFeatureBranch(cmd.Context(), c.featureBranch)
+
+			return
+		},
+		RunE: c.run,
+	}
+	cmd.Flags().StringVarP(&c.featureBranch, "feature", "f", "", "feature branch")
+
+	return cmd
+}
+
+func (c *deleteCommand) run(cmd *cobra.Command, args []string) error {
+	reviewBranches, err := git.AllReviewBranches(cmd.Context(), c.featureBranch)
 	if err != nil {
 		return err
 	}

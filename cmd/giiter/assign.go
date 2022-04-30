@@ -6,18 +6,29 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
 	"github.com/waffleboot/giiter/internal/git"
 )
 
-var assignCmd = &cobra.Command{
-	Use:     "assign",
-	Short:   "reassign commit to review branch",
-	Aliases: []string{"a"},
-	// PersistentPreRunE не нужен, см. main
-	RunE: assign,
+type assignCommand struct {
+	branches *branches
 }
 
-func assign(cmd *cobra.Command, args []string) error {
+func makeAssignCommand(branches *branches) *cobra.Command {
+	c := assignCommand{
+		branches: branches,
+	}
+
+	return &cobra.Command{
+		Use:     "assign",
+		Short:   "reassign commit to review branch",
+		Aliases: []string{"a"},
+		// PersistentPreRunE не нужен, см. main
+		RunE: c.run,
+	}
+}
+
+func (c *assignCommand) run(cmd *cobra.Command, args []string) error {
 	if len(args) < 2 {
 		return errors.New("need new commit and old review branch position numbers")
 	}
@@ -36,8 +47,8 @@ func assign(cmd *cobra.Command, args []string) error {
 
 	records, err := git.State(
 		cmd.Context(),
-		_baseBranch,
-		_featureBranch)
+		c.branches.baseBranch,
+		c.branches.featureBranch)
 	if err != nil {
 		return err
 	}
@@ -73,5 +84,5 @@ func assign(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return listFeatureCommits(cmd, args)
+	return listFeatureCommits(cmd.Context(), c.branches)
 }

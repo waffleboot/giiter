@@ -10,14 +10,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/waffleboot/giiter/internal/app"
-	"github.com/waffleboot/giiter/internal/git"
 )
 
-var (
-	_cfgFile       string
-	_baseBranch    string
-	_featureBranch string
-)
+var _cfgFile string
 
 func main() {
 	if err := run(); err != nil {
@@ -45,33 +40,27 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&app.Config.EnableGitPush, "push", "p", false, "enable git push")
 	rootCmd.PersistentFlags().BoolVar(&app.Config.UseSubjectToMatch, "subj", false, "use commit subject to match")
 
+	branches := new(branches)
+
+	listCmd := makeListCommand(branches)
+	makeCmd := makeMakeCommand(branches)
+	diffCmd := makeDiffCommand(branches)
+	assignCmd := makeAssignCommand(branches)
+	rebaseCmd := makeRebaseCommand(branches)
+
+	branches.addCommonFlags(listCmd)
+	branches.addCommonFlags(makeCmd)
+	branches.addCommonFlags(diffCmd)
+	branches.addCommonFlags(rebaseCmd)
+	branches.addCommonFlags(assignCmd)
+
 	rootCmd.AddCommand(listCmd)
-	rootCmd.AddCommand(cmdDiff)
+	rootCmd.AddCommand(diffCmd)
 	rootCmd.AddCommand(makeCmd)
-	rootCmd.AddCommand(deleteCmd)
 	rootCmd.AddCommand(assignCmd)
 	rootCmd.AddCommand(rebaseCmd)
-	rootCmd.AddCommand(branchesCmd)
-
-	addCommonFlags := func(cmd *cobra.Command) {
-		cmd.Flags().StringVarP(&_baseBranch, "base", "b", "", "base branch")
-		cmd.Flags().StringVarP(&_featureBranch, "feature", "f", "", "feature branch")
-		cmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) (err error) {
-			_baseBranch, _featureBranch, err = git.FindBaseAndFeatureBranches(cmd.Context(), _baseBranch, _featureBranch)
-
-			return
-		}
-	}
-
-	addCommonFlags(listCmd)
-	addCommonFlags(makeCmd)
-	addCommonFlags(cmdDiff)
-	addCommonFlags(rebaseCmd)
-	addCommonFlags(assignCmd)
-
-	makeCmd.Flags().StringVarP(&app.Config.MergeRequestPrefix, "prefix", "t", "", "title prefix for merge request")
-
-	deleteCmd.Flags().StringVarP(&_featureBranch, "feature", "f", "", "feature branch")
+	rootCmd.AddCommand(makeDeleteCommand())
+	rootCmd.AddCommand(makeBranchesCommand())
 }
 
 func initConfig() {

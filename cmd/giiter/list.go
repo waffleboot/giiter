@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -8,12 +9,22 @@ import (
 	"github.com/waffleboot/giiter/internal/git"
 )
 
-var listCmd = &cobra.Command{
-	Use:     "list",
-	Short:   "show feature commits",
-	Aliases: []string{"l"},
-	// PersistentPreRunE не нужен, см. main
-	RunE: listFeatureCommits,
+type listCommand struct {
+	branches *branches
+}
+
+func makeListCommand(branches *branches) *cobra.Command {
+	c := listCommand{
+		branches: branches,
+	}
+
+	return &cobra.Command{
+		Use:     "list",
+		Short:   "show feature commits",
+		Aliases: []string{"l"},
+		// PersistentPreRunE не нужен, см. main
+		RunE: c.run,
+	}
 }
 
 const (
@@ -28,11 +39,15 @@ const (
 	MarkOkCommit     = Green + "ok" + Reset
 )
 
-func listFeatureCommits(cmd *cobra.Command, args []string) error {
+func (c *listCommand) run(cmd *cobra.Command, args []string) error {
+	return listFeatureCommits(cmd.Context(), c.branches)
+}
+
+func listFeatureCommits(ctx context.Context, c *branches) error {
 	records, err := git.State(
-		cmd.Context(),
-		_baseBranch,
-		_featureBranch)
+		ctx,
+		c.baseBranch,
+		c.featureBranch)
 	if err != nil {
 		return err
 	}

@@ -8,24 +8,36 @@ import (
 	"github.com/waffleboot/giiter/internal/git"
 )
 
-var makeCmd = &cobra.Command{
-	Use:     "make",
-	Short:   "make review branches",
-	Aliases: []string{"m"},
-	// PersistentPreRunE не нужен, см. main
-	RunE: makeReviewBranches,
+type makeCommand struct {
+	branches *branches
 }
 
-func makeReviewBranches(cmd *cobra.Command, args []string) error {
+func makeMakeCommand(branches *branches) *cobra.Command {
+	c := makeCommand{
+		branches: branches,
+	}
+	cmd := &cobra.Command{
+		Use:     "make",
+		Short:   "make review branches",
+		Aliases: []string{"m"},
+		// PersistentPreRunE не нужен, см. main
+		RunE: c.run,
+	}
+	cmd.Flags().StringVarP(&app.Config.MergeRequestPrefix, "prefix", "t", "", "title prefix for merge request")
+
+	return cmd
+}
+
+func (c *makeCommand) run(cmd *cobra.Command, args []string) error {
 	records, err := git.Refresh(
 		cmd.Context(),
-		_baseBranch,
-		_featureBranch)
+		c.branches.baseBranch,
+		c.branches.featureBranch)
 	if err != nil {
 		return err
 	}
 
-	prevBranch := _baseBranch
+	prevBranch := c.branches.baseBranch
 
 	for i := range records {
 		if records[i].HasReview() {
@@ -37,7 +49,7 @@ func makeReviewBranches(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		newBranch := fmt.Sprintf(git.Prefix+"%s/%d", _featureBranch, records[i].NewID)
+		newBranch := fmt.Sprintf(git.Prefix+"%s/%d", c.branches.featureBranch, records[i].NewID)
 
 		title := "Draft: "
 		if app.Config.MergeRequestPrefix != "" {
@@ -69,5 +81,5 @@ func makeReviewBranches(cmd *cobra.Command, args []string) error {
 		prevBranch = newBranch
 	}
 
-	return listFeatureCommits(cmd, args)
+	return listFeatureCommits(cmd.Context(), c.branches)
 }

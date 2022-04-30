@@ -5,14 +5,24 @@ import (
 	"github.com/waffleboot/giiter/internal/git"
 )
 
-var rebaseCmd = &cobra.Command{
-	Use:     "rebase",
-	Short:   "rebase feature branch",
-	Aliases: []string{"r"},
-	// PersistentPreRunE не нужен, см. main
-	RunE: rebaseFeatureBranch,
+type rebaseCommand struct {
+	branches *branches
 }
 
-func rebaseFeatureBranch(cmd *cobra.Command, args []string) error {
-	return git.Rebase(cmd.Context(), _baseBranch, _featureBranch)
+func makeRebaseCommand(branches *branches) *cobra.Command {
+	c := rebaseCommand{
+		branches: branches,
+	}
+
+	return &cobra.Command{
+		Use:     "rebase",
+		Short:   "rebase feature branch",
+		Aliases: []string{"r"},
+		// PersistentPreRunE не нужен, см. main
+		RunE: c.run,
+	}
+}
+
+func (c *rebaseCommand) run(cmd *cobra.Command, args []string) error {
+	return git.Rebase(cmd.Context(), c.branches.baseBranch, c.branches.featureBranch)
 }

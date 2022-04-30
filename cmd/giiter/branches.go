@@ -7,20 +7,31 @@ import (
 	"github.com/waffleboot/giiter/internal/git"
 )
 
-var branchesCmd = &cobra.Command{
-	Use:     "branches",
-	Short:   "show all review branches",
-	Aliases: []string{"b"},
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
-		_featureBranch, err = git.FindFeatureBranch(cmd.Context(), _featureBranch)
-
-		return
-	},
-	RunE: showAllBranches,
+type branchesCommand struct {
+	featureBranch string
 }
 
-func showAllBranches(cmd *cobra.Command, args []string) error {
-	reviewBranches, err := git.AllReviewBranches(cmd.Context(), _featureBranch)
+func makeBranchesCommand() *cobra.Command {
+	var c branchesCommand
+
+	cmd := &cobra.Command{
+		Use:     "branches",
+		Short:   "show all review branches",
+		Aliases: []string{"b"},
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
+			c.featureBranch, err = git.FindFeatureBranch(cmd.Context(), c.featureBranch)
+
+			return
+		},
+		RunE: c.run,
+	}
+	cmd.Flags().StringVarP(&c.featureBranch, "feature", "f", "", "feature branch")
+
+	return cmd
+}
+
+func (c *branchesCommand) run(cmd *cobra.Command, args []string) error {
+	reviewBranches, err := git.AllReviewBranches(cmd.Context(), c.featureBranch)
 	if err != nil {
 		return err
 	}

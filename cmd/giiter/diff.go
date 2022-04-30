@@ -9,15 +9,25 @@ import (
 	"github.com/waffleboot/giiter/internal/git"
 )
 
-var cmdDiff = &cobra.Command{
-	Use:     "diff",
-	Short:   "diff commit",
-	Aliases: []string{"d"},
-	// PersistentPreRunE не нужен, см. main
-	RunE: showDiff,
+type diffCommand struct {
+	branches *branches
 }
 
-func showDiff(cmd *cobra.Command, args []string) error {
+func makeDiffCommand(branches *branches) *cobra.Command {
+	c := diffCommand{
+		branches: branches,
+	}
+
+	return &cobra.Command{
+		Use:     "diff",
+		Short:   "diff commit",
+		Aliases: []string{"d"},
+		// PersistentPreRunE не нужен, см. main
+		RunE: c.run,
+	}
+}
+
+func (c *diffCommand) run(cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("point commit number")
 	}
@@ -31,8 +41,8 @@ func showDiff(cmd *cobra.Command, args []string) error {
 
 	records, err := git.State(
 		cmd.Context(),
-		_baseBranch,
-		_featureBranch)
+		c.branches.baseBranch,
+		c.branches.featureBranch)
 	if err != nil {
 		return err
 	}
