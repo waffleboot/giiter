@@ -111,7 +111,7 @@ func Commits(ctx context.Context, baseBranch, featureBranch string) ([]string, e
 
 	r := fmt.Sprintf("%s..%s", baseBranch, featureBranch)
 
-	commits, err := run(ctx, "log", `--pretty=format:%h`, r)
+	commits, err := run(ctx, "log", `--pretty=format:%h`, "--first-parent", r)
 	if err != nil {
 		return nil, errors.WithMessage(err, "get commits by log")
 	}

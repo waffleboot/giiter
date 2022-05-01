@@ -21,7 +21,7 @@ type Branch struct {
 
 type reviewBranch struct {
 	id     int
-	view   string
+	name   string
 	branch Branch
 }
 
@@ -67,7 +67,7 @@ func (r *Record) ReviewBranchNames() []string {
 func (r *Record) ReviewBranchNamesForUI() []string {
 	a := make([]string, 0, len(r.reviewBranches))
 	for _, branch := range r.reviewBranches {
-		a = append(a, branch.view)
+		a = append(a, branch.name)
 	}
 
 	return a
@@ -120,7 +120,7 @@ func newReviewRecord(commit *commit, branch reviewBranch) Record {
 func newReviewBranch(id int, branch Branch) reviewBranch {
 	return reviewBranch{
 		id:     id,
-		view:   branch.BranchName[len(Prefix):],
+		name:   branch.BranchName[len(Prefix):],
 		branch: branch,
 	}
 }
