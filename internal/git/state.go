@@ -88,8 +88,8 @@ func (r *records) matchCommitsAndBranches(ctx context.Context, branches []review
 			return nil, err
 		}
 
-		if diffHash.valid {
-			if index, ok := r.diffIndex[diffHash.hash]; ok {
+		if diffHash.Valid {
+			if index, ok := r.diffIndex[diffHash.String]; ok {
 				r.records[index].addReviewBranch(branch)
 
 				continue
@@ -154,8 +154,8 @@ func (r *records) lazyDiffHashes(ctx context.Context) error {
 				return err
 			}
 
-			if diffHash.valid {
-				r.diffIndex[diffHash.hash] = i
+			if diffHash.Valid {
+				r.diffIndex[diffHash.String] = i
 			}
 		}
 	}

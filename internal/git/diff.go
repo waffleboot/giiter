@@ -3,6 +3,7 @@ package git
 import (
 	"context"
 	"crypto/sha256"
+	"database/sql"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,15 +12,10 @@ import (
 	"github.com/waffleboot/giiter/internal/app"
 )
 
-type nullHash struct {
-	hash  string
-	valid bool
-}
-
-func diffHash(ctx context.Context, sha string) (nullHash, error) {
+func diffHash(ctx context.Context, sha string) (sql.NullString, error) {
 	files, err := run(ctx, "diff-tree", "-r", "--name-only", sha)
 	if err != nil {
-		return nullHash{}, err
+		return sql.NullString{}, err
 	}
 
 	files = files[1:]
@@ -31,7 +27,7 @@ func diffHash(ctx context.Context, sha string) (nullHash, error) {
 
 		diff, err := run(ctx, "diff-tree", "--unified=0", sha, "--", file)
 		if err != nil {
-			return nullHash{}, err
+			return sql.NullString{}, err
 		}
 
 		diff = diff[2:]
@@ -51,7 +47,7 @@ func diffHash(ctx context.Context, sha string) (nullHash, error) {
 		}
 
 		if strings.HasPrefix(diff[1], "Binary") {
-			return nullHash{valid: false}, nil
+			return sql.NullString{}, nil
 		}
 
 		diff = diff[3:]
@@ -77,7 +73,7 @@ func diffHash(ctx context.Context, sha string) (nullHash, error) {
 		fmt.Printf("Commit: %s DiffHash: %s\n", sha, strSum)
 	}
 
-	return nullHash{hash: strSum, valid: true}, nil
+	return sql.NullString{String: strSum, Valid: true}, nil
 }
 
 func Diff(ctx context.Context, commitSHA string, args ...string) error {
