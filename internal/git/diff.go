@@ -12,13 +12,22 @@ import (
 	"github.com/waffleboot/giiter/internal/app"
 )
 
+func diffFiles(ctx context.Context, sha string) ([]string, error) {
+	files, err := run(ctx, "diff-tree", "-r", "--name-only", "-c", sha)
+	if err != nil {
+		return nil, err
+	}
+	if len(files) == 1 {
+		return nil, nil
+	}
+	return files[1:], nil
+}
+
 func diffHash(ctx context.Context, sha string) (sql.NullString, error) {
-	files, err := run(ctx, "diff-tree", "-r", "--name-only", sha)
+	files, err := diffFiles(ctx, sha)
 	if err != nil {
 		return sql.NullString{}, err
 	}
-
-	files = files[1:]
 
 	hash := sha256.New()
 
