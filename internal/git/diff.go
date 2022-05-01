@@ -28,6 +28,9 @@ func diffHash(ctx context.Context, sha string) (sql.NullString, error) {
 	if err != nil {
 		return sql.NullString{}, err
 	}
+	if len(files) == 0 {
+		return sql.NullString{}, nil
+	}
 
 	hash := sha256.New()
 
