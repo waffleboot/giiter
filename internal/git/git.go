@@ -116,6 +116,22 @@ func Commits(ctx context.Context, baseBranch, featureBranch string) ([]string, e
 		return nil, errors.WithMessage(err, "get commits by log")
 	}
 
+	var j int
+
+	for i := range commits {
+		files, errDiff := diffFiles(ctx, commits[i])
+		if errDiff != nil {
+			return nil, errDiff
+		}
+
+		if len(files) > 0 {
+			commits[j] = commits[i]
+			j++
+		}
+	}
+
+	commits = commits[:j]
+
 	// reverse order
 	for i := 0; i < len(commits)/2; i++ {
 		r := len(commits) - i - 1
