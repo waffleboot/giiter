@@ -61,3 +61,13 @@ func initConfig() {
 		os.Exit(1)
 	}
 }
+
+func parentPersistentPreRunE(cmd *cobra.Command, args []string) error {
+	for p := cmd.Parent(); p != nil; p = p.Parent() {
+		if p.PersistentPreRunE != nil {
+			return p.PersistentPreRunE(p, args)
+		}
+	}
+
+	return nil
+}

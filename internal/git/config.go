@@ -46,7 +46,6 @@ func (c *Config) Validate(ctx context.Context) (err error) {
 		if err != nil {
 			return
 		}
-
 	}
 
 	return nil

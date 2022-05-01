@@ -24,6 +24,10 @@ func makeBranchesCommand(config *git.Config) *cobra.Command {
 		Short:   "show all review branches",
 		Aliases: []string{"b"},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
+			if err := parentPersistentPreRunE(cmd, args); err != nil {
+				return err
+			}
+
 			return c.config.Add(git.FeatureBranch(featureBranch)).Validate(cmd.Context())
 		},
 		RunE: c.run,

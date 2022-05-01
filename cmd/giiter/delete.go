@@ -21,6 +21,10 @@ func makeDeleteCommand(config *git.Config) *cobra.Command {
 		Use:   "delete",
 		Short: "delete review branches",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
+			if err := parentPersistentPreRunE(cmd, args); err != nil {
+				return err
+			}
+
 			return c.config.Add(git.FeatureBranch(featureBranch)).Validate(cmd.Context())
 		},
 		RunE: c.run,
