@@ -37,7 +37,7 @@ func diffHash(ctx context.Context, sha string) (sql.NullString, error) {
 	for i := range files {
 		file := files[i]
 
-		diff, err := run(ctx, "diff-tree", "--unified=0", sha, "--", file)
+		diff, err := run(ctx, "diff-tree", "--unified=0", "-c", sha, "--", file)
 		if err != nil {
 			return sql.NullString{}, err
 		}
