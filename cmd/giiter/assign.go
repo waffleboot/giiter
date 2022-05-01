@@ -38,9 +38,9 @@ func (c *assignCommand) run(cmd *cobra.Command, args []string) error {
 		return errors.New("need new commit and old review branch position numbers")
 	}
 
-	shaPos, branchPos := args[0], args[1]
+	commitPos, branchPos := args[0], args[1]
 
-	shaIndex, err := strconv.Atoi(shaPos)
+	commitIndex, err := strconv.Atoi(commitPos)
 	if err != nil {
 		return err
 	}
@@ -55,34 +55,34 @@ func (c *assignCommand) run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	shaIndex--
+	commitIndex--
 	branchIndex--
 
 	switch {
-	case shaIndex < 0:
+	case commitIndex < 0:
 		return errors.New("commit position is negative")
-	case shaIndex > len(records):
+	case commitIndex > len(records):
 		return errors.New("commit position is greater then count of records")
 	case branchIndex < 0:
 		return errors.New("branch position is negative")
 	case branchIndex > len(records):
 		return errors.New("branch position is greater then count of records")
-	case shaIndex == branchIndex:
+	case commitIndex == branchIndex:
 		return errors.New("you point the same record")
-	case records[shaIndex].HasReview():
-		return fmt.Errorf("could not reassign commit %s with review", shaPos)
+	case records[commitIndex].HasReview():
+		return fmt.Errorf("could not reassign commit %s with review", commitPos)
 	case !records[branchIndex].HasReview():
 		return fmt.Errorf("could not reassign commit %s without review", branchPos)
 	}
 
-	featureSHA := records[shaIndex].CommitSHA()
+	commit := records[commitIndex].CommitSHA()
 
 	branchName, err := records[branchIndex].AnyReviewBranch()
 	if err != nil {
 		return err
 	}
 
-	if err := git.SwitchBranch(cmd.Context(), branchName, featureSHA); err != nil {
+	if err := git.SwitchBranch(cmd.Context(), branchName, commit); err != nil {
 		return err
 	}
 
