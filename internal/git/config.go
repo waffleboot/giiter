@@ -34,19 +34,19 @@ func (c *Config) Add(opts ...Option) *Config {
 }
 
 func (c *Config) Validate(ctx context.Context) (err error) {
-	if c.baseBranch.Valid && c.featureBranch.Valid {
+	switch {
+	case c.baseBranch.Valid && c.featureBranch.Valid:
 		c.baseBranch.String, c.featureBranch.String, err = FindBaseAndFeatureBranches(
 			ctx, c.baseBranch.String, c.featureBranch.String)
 		if err != nil {
 			return
 		}
-	}
-
-	if c.featureBranch.Valid {
+	case c.featureBranch.Valid:
 		c.featureBranch.String, err = FindFeatureBranch(ctx, c.featureBranch.String)
 		if err != nil {
 			return
 		}
+
 	}
 
 	return nil
