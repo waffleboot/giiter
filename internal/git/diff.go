@@ -17,9 +17,11 @@ func diffFiles(ctx context.Context, sha string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if len(files) == 1 {
 		return nil, nil
 	}
+
 	return files[1:], nil
 }
 
@@ -28,6 +30,7 @@ func diffHash(ctx context.Context, sha string) (sql.NullString, error) {
 	if err != nil {
 		return sql.NullString{}, err
 	}
+
 	if len(files) == 0 {
 		return sql.NullString{}, nil
 	}

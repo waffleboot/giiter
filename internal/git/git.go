@@ -117,11 +117,13 @@ func Commits(ctx context.Context, baseBranch, featureBranch string) ([]string, e
 	}
 
 	var j int
+
 	for i := range commits {
-		files, err := diffFiles(ctx, commits[i])
-		if err != nil {
-			return nil, err
+		files, errDiff := diffFiles(ctx, commits[i])
+		if errDiff != nil {
+			return nil, errDiff
 		}
+
 		if len(files) > 0 {
 			commits[j] = commits[i]
 			j++
