@@ -26,21 +26,9 @@ func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	return rootCmd.ExecuteContext(ctx)
-}
-
-func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.Use = "giiter"
-	rootCmd.SilenceUsage = true
-	rootCmd.SilenceErrors = true
-
-	rootCmd.PersistentFlags().StringVar(&_cfgFile, "config", ".giiter.yml", "config file")
-	rootCmd.PersistentFlags().BoolVarP(&app.Config.Debug, "debug", "d", false, "debug output")
-	rootCmd.PersistentFlags().BoolVarP(&app.Config.Verbose, "verbose", "v", false, "verbose output")
-	rootCmd.PersistentFlags().BoolVarP(&app.Config.EnableGitPush, "push", "p", false, "enable git push")
-	rootCmd.PersistentFlags().BoolVar(&app.Config.UseSubjectToMatch, "subj", false, "use commit subject to match")
+	rootCmd := makeRootCommand()
 
 	config := new(git.Config)
 
@@ -63,6 +51,8 @@ func init() {
 	rootCmd.AddCommand(rebaseCmd)
 	rootCmd.AddCommand(makeDeleteCommand(config))
 	rootCmd.AddCommand(makeBranchesCommand(config))
+
+	return rootCmd.ExecuteContext(ctx)
 }
 
 func initConfig() {
