@@ -109,9 +109,9 @@ func Commits(ctx context.Context, baseBranch, featureBranch string) ([]string, e
 		return nil, errors.Errorf("branch '%s' not found", featureBranch)
 	}
 
-	r := fmt.Sprintf("%s..%s", baseBranch, featureBranch)
+	interval := fmt.Sprintf("%s..%s", baseBranch, featureBranch)
 
-	commits, err := run(ctx, "log", `--pretty=format:%h`, "--first-parent", r)
+	commits, err := run(ctx, "log", `--pretty=format:%h`, "--first-parent", interval)
 	if err != nil {
 		return nil, errors.WithMessage(err, "get commits by log")
 	}
