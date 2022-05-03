@@ -12,7 +12,7 @@ import (
 	"github.com/waffleboot/giiter/internal/app"
 )
 
-func diffFiles(ctx context.Context, sha string) ([]string, error) {
+func changedFiles(ctx context.Context, sha string) ([]string, error) {
 	files, err := run(ctx, "diff-tree", "-r", "--name-only", "-c", sha)
 	if err != nil {
 		return nil, err
@@ -26,7 +26,7 @@ func diffFiles(ctx context.Context, sha string) ([]string, error) {
 }
 
 func diffHash(ctx context.Context, sha string) (sql.NullString, error) {
-	files, err := diffFiles(ctx, sha)
+	files, err := changedFiles(ctx, sha)
 	if err != nil {
 		return sql.NullString{}, err
 	}

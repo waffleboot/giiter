@@ -88,10 +88,10 @@ func CreateMergeRequest(ctx context.Context, req MergeRequest) error {
 	return err
 }
 
-func Commits(ctx context.Context, baseBranch, featureBranch string) ([]string, error) {
+func validateBranches(ctx context.Context, baseBranch, featureBranch string) error {
 	branches, err := AllBranches(ctx)
 	if err != nil {
-		return nil, errors.WithMessage(err, "get commits")
+		return errors.WithMessage(err, "get all branches")
 	}
 
 	var baseFound, featFound bool
@@ -103,43 +103,99 @@ func Commits(ctx context.Context, baseBranch, featureBranch string) ([]string, e
 	}
 
 	if !baseFound {
-		return nil, errors.Errorf("branch '%s' not found", baseBranch)
+		return errors.Errorf("branch '%s' not found", baseBranch)
 	}
 
 	if !featFound {
-		return nil, errors.Errorf("branch '%s' not found", featureBranch)
+		return errors.Errorf("branch '%s' not found", featureBranch)
 	}
 
-	interval := fmt.Sprintf("%s..%s", baseBranch, featureBranch)
+	return nil
+}
 
-	commits, err := run(ctx, "log", `--pretty=format:%h`, "--first-parent", interval)
+func getRange(baseBranch, featureBranch string) string {
+	return fmt.Sprintf("%s..%s", baseBranch, featureBranch)
+}
+
+func gitLogRange(ctx context.Context, interval string) ([]string, error) {
+	return run(ctx, "log", `--pretty=format:%h`, "--first-parent", interval)
+}
+
+func gitLogBetweenBranches(ctx context.Context, baseBranch, featureBranch string) ([]string, error) {
+	return gitLogRange(ctx, getRange(baseBranch, featureBranch))
+}
+
+func findCommitsBetween(ctx context.Context, baseBranch, featureBranch string) ([]string, error) {
+	commits, err := gitLogBetweenBranches(ctx, baseBranch, featureBranch)
 	if err != nil {
 		return nil, errors.WithMessage(err, "get commits by log")
 	}
 
+	return commits, nil
+}
+
+func isEmptyCommit(ctx context.Context, commit string) (bool, error) {
+	files, err := changedFiles(ctx, commit)
+	if err != nil {
+		return false, err
+	}
+
+	return len(files) == 0, nil
+}
+
+func filterCommit(ctx context.Context, commit string) (bool, error) {
+	emptyCommit, err := isEmptyCommit(ctx, commit)
+	if err != nil {
+		return false, err
+	}
+
+	return emptyCommit, nil
+}
+
+func filterCommits(ctx context.Context, commits []string) ([]string, error) {
 	var j int
 
 	for i := range commits {
-		files, errDiff := diffFiles(ctx, commits[i])
-		if errDiff != nil {
-			return nil, errDiff
+		skip, err := filterCommit(ctx, commits[i])
+		if err != nil {
+			return nil, err
 		}
 
-		if len(files) > 0 {
+		if !skip {
 			commits[j] = commits[i]
 			j++
 		}
 	}
 
-	commits = commits[:j]
+	return commits[:j], nil
+}
 
+func reverseCommits(commits []string) []string {
 	// reverse order
 	for i := 0; i < len(commits)/2; i++ {
 		r := len(commits) - i - 1
 		commits[i], commits[r] = commits[r], commits[i]
 	}
 
-	return commits, err
+	return commits
+}
+
+func Commits(ctx context.Context, baseBranch, featureBranch string) ([]string, error) {
+	if err := validateBranches(ctx, baseBranch, featureBranch); err != nil {
+		return nil, err
+	}
+
+	commits, err := findCommitsBetween(ctx, baseBranch, featureBranch)
+	if err != nil {
+		return nil, err
+	}
+
+	commits, err = filterCommits(ctx, commits)
+	if err != nil {
+		return nil, err
+	}
+
+	return reverseCommits(commits), err
 }
 
 func SwitchBranch(ctx context.Context, branch, commit string) error {
@@ -157,7 +213,7 @@ func SwitchBranch(ctx context.Context, branch, commit string) error {
 	return err
 }
 
-func FindCommit(ctx context.Context, sha string) (*commit, error) {
+func findCommit(ctx context.Context, sha string) (*commit, error) {
 	output, err := run(ctx, "log", "--pretty=format:%s%n%b", sha, "-1")
 	if err != nil {
 		return nil, err

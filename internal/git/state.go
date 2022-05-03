@@ -48,7 +48,7 @@ func createRecords(ctx context.Context, baseBranch, featureBranch string) (*reco
 	}
 
 	for i := range commits {
-		commit, errFind := FindCommit(ctx, commits[i])
+		commit, errFind := findCommit(ctx, commits[i])
 		if errFind != nil {
 			return nil, errFind
 		}
@@ -65,11 +65,11 @@ func createRecords(ctx context.Context, baseBranch, featureBranch string) (*reco
 
 func (r *records) matchCommitsAndBranches(ctx context.Context, branches []reviewBranch) ([]Record, error) {
 	for i := range branches {
-		branch := branches[i]
+		reviewBranch := branches[i]
 
-		reviewSHA := branch.branch.CommitSHA
+		reviewSHA := reviewBranch.branch.CommitSHA
 		if index, ok := r.shaIndex[reviewSHA]; ok {
-			r.records[index].addReviewBranch(branch)
+			r.records[index].addReviewBranch(reviewBranch)
 
 			continue
 		}
@@ -78,7 +78,7 @@ func (r *records) matchCommitsAndBranches(ctx context.Context, branches []review
 			return nil, errLazy
 		}
 
-		commit, err := FindCommit(ctx, reviewSHA)
+		commit, err := findCommit(ctx, reviewSHA)
 		if err != nil {
 			return nil, err
 		}
@@ -90,7 +90,7 @@ func (r *records) matchCommitsAndBranches(ctx context.Context, branches []review
 
 		if diffHash.Valid {
 			if index, ok := r.diffIndex[diffHash.String]; ok {
-				r.records[index].addReviewBranch(branch)
+				r.records[index].addReviewBranch(reviewBranch)
 
 				continue
 			}
@@ -98,13 +98,13 @@ func (r *records) matchCommitsAndBranches(ctx context.Context, branches []review
 
 		if app.Config.UseSubjectToMatch {
 			if index, ok := r.subjIndex[commit.Message.Subject]; ok {
-				r.records[index].addReviewBranch(branch)
+				r.records[index].addReviewBranch(reviewBranch)
 
 				continue
 			}
 		}
 
-		r.addReviewRecord(branch, commit)
+		r.addReviewRecord(reviewBranch, commit)
 	}
 
 	r.fillNewCommitIDs()
