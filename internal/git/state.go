@@ -121,7 +121,7 @@ func (r *records) addReviewRecord(branch reviewBranch, commit *commit) {
 func AllReviewBranches(ctx context.Context, featureBranch string) (result []reviewBranch, err error) {
 	branchPrefix := fmt.Sprintf(Prefix+"%s/", featureBranch)
 
-	branches, err := AllBranches(ctx, gitRunner{})
+	branches, err := AllBranches(ctx, runner{})
 	if err != nil {
 		return nil, err
 	}

@@ -22,6 +22,12 @@ type GitRunnerMock struct {
 	afterAllBranchesCounter  uint64
 	beforeAllBranchesCounter uint64
 	AllBranchesMock          mGitRunnerMockAllBranches
+
+	funcChangedFiles          func(ctx context.Context, sha string) (sa1 []string, err error)
+	inspectFuncChangedFiles   func(ctx context.Context, sha string)
+	afterChangedFilesCounter  uint64
+	beforeChangedFilesCounter uint64
+	ChangedFilesMock          mGitRunnerMockChangedFiles
 }
 
 // NewGitRunnerMock returns a mock for git.GitRunner
@@ -33,6 +39,9 @@ func NewGitRunnerMock(t minimock.Tester) *GitRunnerMock {
 
 	m.AllBranchesMock = mGitRunnerMockAllBranches{mock: m}
 	m.AllBranchesMock.callArgs = []*GitRunnerMockAllBranchesParams{}
+
+	m.ChangedFilesMock = mGitRunnerMockChangedFiles{mock: m}
+	m.ChangedFilesMock.callArgs = []*GitRunnerMockChangedFilesParams{}
 
 	return m
 }
@@ -253,10 +262,229 @@ func (m *GitRunnerMock) MinimockAllBranchesInspect() {
 	}
 }
 
+type mGitRunnerMockChangedFiles struct {
+	mock               *GitRunnerMock
+	defaultExpectation *GitRunnerMockChangedFilesExpectation
+	expectations       []*GitRunnerMockChangedFilesExpectation
+
+	callArgs []*GitRunnerMockChangedFilesParams
+	mutex    sync.RWMutex
+}
+
+// GitRunnerMockChangedFilesExpectation specifies expectation struct of the GitRunner.ChangedFiles
+type GitRunnerMockChangedFilesExpectation struct {
+	mock    *GitRunnerMock
+	params  *GitRunnerMockChangedFilesParams
+	results *GitRunnerMockChangedFilesResults
+	Counter uint64
+}
+
+// GitRunnerMockChangedFilesParams contains parameters of the GitRunner.ChangedFiles
+type GitRunnerMockChangedFilesParams struct {
+	ctx context.Context
+	sha string
+}
+
+// GitRunnerMockChangedFilesResults contains results of the GitRunner.ChangedFiles
+type GitRunnerMockChangedFilesResults struct {
+	sa1 []string
+	err error
+}
+
+// Expect sets up expected params for GitRunner.ChangedFiles
+func (mmChangedFiles *mGitRunnerMockChangedFiles) Expect(ctx context.Context, sha string) *mGitRunnerMockChangedFiles {
+	if mmChangedFiles.mock.funcChangedFiles != nil {
+		mmChangedFiles.mock.t.Fatalf("GitRunnerMock.ChangedFiles mock is already set by Set")
+	}
+
+	if mmChangedFiles.defaultExpectation == nil {
+		mmChangedFiles.defaultExpectation = &GitRunnerMockChangedFilesExpectation{}
+	}
+
+	mmChangedFiles.defaultExpectation.params = &GitRunnerMockChangedFilesParams{ctx, sha}
+	for _, e := range mmChangedFiles.expectations {
+		if minimock.Equal(e.params, mmChangedFiles.defaultExpectation.params) {
+			mmChangedFiles.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmChangedFiles.defaultExpectation.params)
+		}
+	}
+
+	return mmChangedFiles
+}
+
+// Inspect accepts an inspector function that has same arguments as the GitRunner.ChangedFiles
+func (mmChangedFiles *mGitRunnerMockChangedFiles) Inspect(f func(ctx context.Context, sha string)) *mGitRunnerMockChangedFiles {
+	if mmChangedFiles.mock.inspectFuncChangedFiles != nil {
+		mmChangedFiles.mock.t.Fatalf("Inspect function is already set for GitRunnerMock.ChangedFiles")
+	}
+
+	mmChangedFiles.mock.inspectFuncChangedFiles = f
+
+	return mmChangedFiles
+}
+
+// Return sets up results that will be returned by GitRunner.ChangedFiles
+func (mmChangedFiles *mGitRunnerMockChangedFiles) Return(sa1 []string, err error) *GitRunnerMock {
+	if mmChangedFiles.mock.funcChangedFiles != nil {
+		mmChangedFiles.mock.t.Fatalf("GitRunnerMock.ChangedFiles mock is already set by Set")
+	}
+
+	if mmChangedFiles.defaultExpectation == nil {
+		mmChangedFiles.defaultExpectation = &GitRunnerMockChangedFilesExpectation{mock: mmChangedFiles.mock}
+	}
+	mmChangedFiles.defaultExpectation.results = &GitRunnerMockChangedFilesResults{sa1, err}
+	return mmChangedFiles.mock
+}
+
+//Set uses given function f to mock the GitRunner.ChangedFiles method
+func (mmChangedFiles *mGitRunnerMockChangedFiles) Set(f func(ctx context.Context, sha string) (sa1 []string, err error)) *GitRunnerMock {
+	if mmChangedFiles.defaultExpectation != nil {
+		mmChangedFiles.mock.t.Fatalf("Default expectation is already set for the GitRunner.ChangedFiles method")
+	}
+
+	if len(mmChangedFiles.expectations) > 0 {
+		mmChangedFiles.mock.t.Fatalf("Some expectations are already set for the GitRunner.ChangedFiles method")
+	}
+
+	mmChangedFiles.mock.funcChangedFiles = f
+	return mmChangedFiles.mock
+}
+
+// When sets expectation for the GitRunner.ChangedFiles which will trigger the result defined by the following
+// Then helper
+func (mmChangedFiles *mGitRunnerMockChangedFiles) When(ctx context.Context, sha string) *GitRunnerMockChangedFilesExpectation {
+	if mmChangedFiles.mock.funcChangedFiles != nil {
+		mmChangedFiles.mock.t.Fatalf("GitRunnerMock.ChangedFiles mock is already set by Set")
+	}
+
+	expectation := &GitRunnerMockChangedFilesExpectation{
+		mock:   mmChangedFiles.mock,
+		params: &GitRunnerMockChangedFilesParams{ctx, sha},
+	}
+	mmChangedFiles.expectations = append(mmChangedFiles.expectations, expectation)
+	return expectation
+}
+
+// Then sets up GitRunner.ChangedFiles return parameters for the expectation previously defined by the When method
+func (e *GitRunnerMockChangedFilesExpectation) Then(sa1 []string, err error) *GitRunnerMock {
+	e.results = &GitRunnerMockChangedFilesResults{sa1, err}
+	return e.mock
+}
+
+// ChangedFiles implements git.GitRunner
+func (mmChangedFiles *GitRunnerMock) ChangedFiles(ctx context.Context, sha string) (sa1 []string, err error) {
+	mm_atomic.AddUint64(&mmChangedFiles.beforeChangedFilesCounter, 1)
+	defer mm_atomic.AddUint64(&mmChangedFiles.afterChangedFilesCounter, 1)
+
+	if mmChangedFiles.inspectFuncChangedFiles != nil {
+		mmChangedFiles.inspectFuncChangedFiles(ctx, sha)
+	}
+
+	mm_params := &GitRunnerMockChangedFilesParams{ctx, sha}
+
+	// Record call args
+	mmChangedFiles.ChangedFilesMock.mutex.Lock()
+	mmChangedFiles.ChangedFilesMock.callArgs = append(mmChangedFiles.ChangedFilesMock.callArgs, mm_params)
+	mmChangedFiles.ChangedFilesMock.mutex.Unlock()
+
+	for _, e := range mmChangedFiles.ChangedFilesMock.expectations {
+		if minimock.Equal(e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.sa1, e.results.err
+		}
+	}
+
+	if mmChangedFiles.ChangedFilesMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmChangedFiles.ChangedFilesMock.defaultExpectation.Counter, 1)
+		mm_want := mmChangedFiles.ChangedFilesMock.defaultExpectation.params
+		mm_got := GitRunnerMockChangedFilesParams{ctx, sha}
+		if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmChangedFiles.t.Errorf("GitRunnerMock.ChangedFiles got unexpected parameters, want: %#v, got: %#v%s\n", *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
+
+		mm_results := mmChangedFiles.ChangedFilesMock.defaultExpectation.results
+		if mm_results == nil {
+			mmChangedFiles.t.Fatal("No results are set for the GitRunnerMock.ChangedFiles")
+		}
+		return (*mm_results).sa1, (*mm_results).err
+	}
+	if mmChangedFiles.funcChangedFiles != nil {
+		return mmChangedFiles.funcChangedFiles(ctx, sha)
+	}
+	mmChangedFiles.t.Fatalf("Unexpected call to GitRunnerMock.ChangedFiles. %v %v", ctx, sha)
+	return
+}
+
+// ChangedFilesAfterCounter returns a count of finished GitRunnerMock.ChangedFiles invocations
+func (mmChangedFiles *GitRunnerMock) ChangedFilesAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmChangedFiles.afterChangedFilesCounter)
+}
+
+// ChangedFilesBeforeCounter returns a count of GitRunnerMock.ChangedFiles invocations
+func (mmChangedFiles *GitRunnerMock) ChangedFilesBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmChangedFiles.beforeChangedFilesCounter)
+}
+
+// Calls returns a list of arguments used in each call to GitRunnerMock.ChangedFiles.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmChangedFiles *mGitRunnerMockChangedFiles) Calls() []*GitRunnerMockChangedFilesParams {
+	mmChangedFiles.mutex.RLock()
+
+	argCopy := make([]*GitRunnerMockChangedFilesParams, len(mmChangedFiles.callArgs))
+	copy(argCopy, mmChangedFiles.callArgs)
+
+	mmChangedFiles.mutex.RUnlock()
+
+	return argCopy
+}
+
+// MinimockChangedFilesDone returns true if the count of the ChangedFiles invocations corresponds
+// the number of defined expectations
+func (m *GitRunnerMock) MinimockChangedFilesDone() bool {
+	for _, e := range m.ChangedFilesMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	// if default expectation was set then invocations count should be greater than zero
+	if m.ChangedFilesMock.defaultExpectation != nil && mm_atomic.LoadUint64(&m.afterChangedFilesCounter) < 1 {
+		return false
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcChangedFiles != nil && mm_atomic.LoadUint64(&m.afterChangedFilesCounter) < 1 {
+		return false
+	}
+	return true
+}
+
+// MinimockChangedFilesInspect logs each unmet expectation
+func (m *GitRunnerMock) MinimockChangedFilesInspect() {
+	for _, e := range m.ChangedFilesMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Errorf("Expected call to GitRunnerMock.ChangedFiles with params: %#v", *e.params)
+		}
+	}
+
+	// if default expectation was set then invocations count should be greater than zero
+	if m.ChangedFilesMock.defaultExpectation != nil && mm_atomic.LoadUint64(&m.afterChangedFilesCounter) < 1 {
+		if m.ChangedFilesMock.defaultExpectation.params == nil {
+			m.t.Error("Expected call to GitRunnerMock.ChangedFiles")
+		} else {
+			m.t.Errorf("Expected call to GitRunnerMock.ChangedFiles with params: %#v", *m.ChangedFilesMock.defaultExpectation.params)
+		}
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcChangedFiles != nil && mm_atomic.LoadUint64(&m.afterChangedFilesCounter) < 1 {
+		m.t.Error("Expected call to GitRunnerMock.ChangedFiles")
+	}
+}
+
 // MinimockFinish checks that all mocked methods have been called the expected number of times
 func (m *GitRunnerMock) MinimockFinish() {
 	if !m.minimockDone() {
 		m.MinimockAllBranchesInspect()
+
+		m.MinimockChangedFilesInspect()
 		m.t.FailNow()
 	}
 }
@@ -280,5 +508,6 @@ func (m *GitRunnerMock) MinimockWait(timeout mm_time.Duration) {
 func (m *GitRunnerMock) minimockDone() bool {
 	done := true
 	return done &&
-		m.MinimockAllBranchesDone()
+		m.MinimockAllBranchesDone() &&
+		m.MinimockChangedFilesDone()
 }

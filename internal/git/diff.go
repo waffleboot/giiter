@@ -7,13 +7,14 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	"github.com/waffleboot/giiter/internal/app"
 )
 
-func changedFiles(ctx context.Context, sha string) ([]string, error) {
-	files, err := run(ctx, "diff-tree", "-r", "--name-only", "-c", sha)
+func changedFiles(ctx context.Context, sha string, runner Runner) ([]string, error) {
+	files, err := runner.ChangedFiles(ctx, sha)
 	if err != nil {
 		return nil, err
 	}
@@ -22,11 +23,21 @@ func changedFiles(ctx context.Context, sha string) ([]string, error) {
 		return nil, nil
 	}
 
-	return files[1:], nil
+	files = files[1:]
+	for i := range files {
+		if files[i][0] == '"' {
+			files[i], err = strconv.Unquote(files[i])
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return files, nil
 }
 
 func diffHash(ctx context.Context, sha string) (sql.NullString, error) {
-	files, err := changedFiles(ctx, sha)
+	files, err := changedFiles(ctx, sha, runner{})
 	if err != nil {
 		return sql.NullString{}, err
 	}

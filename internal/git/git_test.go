@@ -29,3 +29,14 @@ func TestAllBranches(t *testing.T) {
 		},
 	}, branches)
 }
+
+func TestChangedFiles(t *testing.T) {
+	mc := minimock.NewController(t)
+	mo := mocks.NewGitRunnerMock(mc).ChangedFilesMock.Return([]string{
+		"bd291ea7324d5812eefcf3fa17b307b2d0f30660",
+		"\"\\321\\200\\321\\203\\321\\201\\321\\201\\320\\272\\320\\270\\320\\271\"",
+	}, nil)
+	files, err := changedFiles(context.Background(), "sha", mo)
+	require.NoError(t, err)
+	require.Equal(t, []string{"русский"}, files)
+}

@@ -13,11 +13,12 @@ import (
 	"github.com/waffleboot/giiter/internal/app"
 )
 
-type GitRunner interface {
+type Runner interface {
 	AllBranches(context.Context) ([]string, error)
+	ChangedFiles(_ context.Context, sha string) ([]string, error)
 }
 
-func AllBranches(ctx context.Context, runner GitRunner) ([]Branch, error) {
+func AllBranches(ctx context.Context, runner Runner) ([]Branch, error) {
 	output, err := runner.AllBranches(ctx)
 	if err != nil {
 		return nil, errors.WithMessage(err, "get all branches")
@@ -94,7 +95,7 @@ func CreateMergeRequest(ctx context.Context, req MergeRequest) error {
 }
 
 func validateBranches(ctx context.Context, baseBranch, featureBranch string) error {
-	branches, err := AllBranches(ctx, gitRunner{})
+	branches, err := AllBranches(ctx, runner{})
 	if err != nil {
 		return errors.WithMessage(err, "get all branches")
 	}
@@ -140,7 +141,7 @@ func findCommitsBetween(ctx context.Context, baseBranch, featureBranch string) (
 }
 
 func isEmptyCommit(ctx context.Context, commit string) (bool, error) {
-	files, err := changedFiles(ctx, commit)
+	files, err := changedFiles(ctx, commit, runner{})
 	if err != nil {
 		return false, err
 	}
