@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -48,6 +49,8 @@ func DeleteBranch(ctx context.Context, branchName string) error {
 		return err
 	}
 
+	<-time.After(500 * time.Millisecond)
+
 	_, err = run(ctx, "push", "origin", "--delete", branchName)
 
 	return err
@@ -88,6 +91,8 @@ func CreateMergeRequest(ctx context.Context, req MergeRequest) error {
 	}
 
 	args = append(args, "origin", req.SourceBranch+":"+req.SourceBranch)
+
+	<-time.After(500 * time.Millisecond)
 
 	_, err := run(ctx, args...)
 
@@ -213,6 +218,8 @@ func SwitchBranch(ctx context.Context, branch, commit string) error {
 	if err != nil {
 		return err
 	}
+
+	<-time.After(500 * time.Millisecond)
 
 	_, err = run(ctx, "push", "origin", "--force", branch+":"+branch)
 
