@@ -8,3 +8,9 @@ tasks:
   lint:
     cmds:
       - golangci-lint run
+  mock:
+    cmds:
+      - ~/go/bin/minimock -i github.com/waffleboot/giiter/internal/git.GitRunner -o internal/git/mocks/git_runner.go
+  test:
+    cmds:
+      - go test ./...
