@@ -13,8 +13,12 @@ import (
 	"github.com/waffleboot/giiter/internal/app"
 )
 
-func AllBranches(ctx context.Context) ([]Branch, error) {
-	output, err := run(ctx, "branch", "--format=%(objectname:short) %(refname:short)")
+type GitRunner interface {
+	AllBranches(context.Context) ([]string, error)
+}
+
+func AllBranches(ctx context.Context, runner GitRunner) ([]Branch, error) {
+	output, err := runner.AllBranches(ctx)
 	if err != nil {
 		return nil, errors.WithMessage(err, "get all branches")
 	}
@@ -22,9 +26,10 @@ func AllBranches(ctx context.Context) ([]Branch, error) {
 	branches := make([]Branch, 0, len(output))
 
 	for _, line := range output {
+		fs := strings.Fields(line)
 		branch := Branch{
-			CommitSHA:  line[:7],
-			BranchName: line[8:],
+			CommitSHA:  fs[0],
+			BranchName: fs[1],
 		}
 		branches = append(branches, branch)
 	}
@@ -89,7 +94,7 @@ func CreateMergeRequest(ctx context.Context, req MergeRequest) error {
 }
 
 func validateBranches(ctx context.Context, baseBranch, featureBranch string) error {
-	branches, err := AllBranches(ctx)
+	branches, err := AllBranches(ctx, gitRunner{})
 	if err != nil {
 		return errors.WithMessage(err, "get all branches")
 	}
